@@ -25,6 +25,10 @@ Append-only. Newest entries at the bottom (chronological). Each entry header is 
 - Pages: [[plan-invoice-to-journal]], [[invoice-to-journal]], [[two-llm-calls-not-one]], [[sqlite-text-for-decimals]], [[bigdecimal-scale-equality]]
 - Notes: Implementation plan. Java 21 + Spring Boot 3 backend, Vite + React + TS frontend, SQLite via better-sqlite3 + Flyway, two-call LLM pipeline (extract → validate → map → assemble → persist). Mapper chain pattern is the pivot for future supplier-rule shortcut. Two LLM calls (Anthropic), `cache_control: ephemeral` on the chart-of-accounts and system prompts.
 
+## [2026-04-27] decision | invoice-to-journal: drop Docker, use embedded-postgres
+- Pages: [[postgres-numeric-for-decimals]], [[plan-invoice-to-journal]]
+- Notes: Dev machine (MacBook 12") can't run Docker. Switched to `io.zonky.test:embedded-postgres` — real Postgres binary, started in-process, data persisted to `./data/pg/`. Zero new prereqs; first boot downloads ~30 MB. PLAN.md §2, §8, §12, §13 updated; `docker-compose.yml` and related dev.sh Docker step removed entirely.
+
 ## [2026-04-27] decision | invoice-to-journal: Postgres swap + Extractor seam
 - Pages: [[postgres-numeric-for-decimals]], [[extractor-as-provider-seam]], [[llm-provider-portability]], [[sqlite-text-for-decimals]], [[plan-invoice-to-journal]], [[invoice-to-journal]], [[index]]
 - Notes: PLAN.md evolved through three pivots in one session: (1) DB swap SQLite → Postgres 16 (Docker), money columns become `NUMERIC(18,2)` and the TEXT-encoding workaround is gone — old decision marked superseded. (2) `Extractor` interface added alongside `Mapper` so the pipeline holds no SDK references; symmetry restored. (3) Anthropic↔OpenAI portability captured as a concept page — prompts and JSON schemas port cheaply, multimodal PDF input is the asymmetry that bites; the architectural defense is project-shaped interfaces. Provider-swap row added to PLAN §11 live-extension table.

@@ -31,7 +31,7 @@ Java 21 + Spring Boot 3 + Postgres 16 in Docker (`NUMERIC(18,2)` for decimals �
 | Backend | Java 21 + Spring Boot 3 | LTS Java; SB is path-of-least-resistance for single-user CRUD+LLM |
 | API build | Gradle (Kotlin DSL) | Daemon keeps incremental builds snappy |
 | HTTP | Spring Web MVC | Synchronous fits inline pipeline; WebFlux overkill |
-| DB | Postgres 16 (`org.postgresql:postgresql`) in Docker + Spring Data JDBC + Flyway | Native `NUMERIC(18,2)`; familiar to graders. See [[postgres-numeric-for-decimals]] |
+| DB | Postgres 16 (`org.postgresql:postgresql`) via `io.zonky.test:embedded-postgres` + Spring Data JDBC + Flyway | Native `NUMERIC(18,2)`; no Docker, no daemon. Downloads real Postgres binary ~30 MB on first boot. See [[postgres-numeric-for-decimals]] |
 | Decimals | `BigDecimal` scale 2 + `Money` value type | See [[bigdecimal-scale-equality]] |
 | LLM SDK (v1) | `com.anthropic:anthropic-java` | Native PDF document blocks; tool-use; `cache_control` for prompt caching. Held behind `Extractor` / `Mapper` interfaces, not imported by the pipeline — see [[extractor-as-provider-seam]] |
 | Model | `claude-sonnet-4-6` for both calls | 15s budget fits; swap to Opus 4.7 for the live harder PDF |
@@ -126,7 +126,7 @@ Each step is a green checkpoint; no step N+1 if N is red.
 - No streaming (15s budget is comfortable for non-streamed tool-use).
 - No retries on LLM failure (re-upload is fine for v1).
 - No background jobs (inline pipeline is fine for one user).
-- No Dockerfile for the app itself — only the Postgres container from `docker-compose.yml`. `docker compose up -d postgres && ./dev.sh` is the README.
+- No Docker at all. `./dev.sh` is the README. Postgres starts embedded; prereqs are JDK 21, Node 20+, pnpm.
 - No Spring Security, Actuator beyond `/health`, observability stack.
 
 ## See also

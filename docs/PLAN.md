@@ -41,7 +41,7 @@ Three principles, in priority order:
 | Backend | Java 21 + Spring Boot 3 | User preference. Java 21 LTS; Spring Boot is the path of least resistance for a single-user CRUD-plus-LLM app. |
 | API build | Gradle (Kotlin DSL) | Daemon keeps incremental builds and reloads snappy. |
 | HTTP | Spring Web MVC | Synchronous fits the inline pipeline; WebFlux would be overkill for one user. |
-| DB | Postgres 16 via `org.postgresql:postgresql` + Spring Data JDBC + Flyway | Native `NUMERIC(18,2)` handling (no string-encoded money); real dialect support in Spring Data JDBC; familiar to graders. Runs in Docker so the only added prereq is Docker. JDBC over JPA — no lazy-loading or session-cache surprises. |
+| DB | Postgres 16 via `org.postgresql:postgresql` + `io.zonky.test:embedded-postgres` + Spring Data JDBC + Flyway | Native `NUMERIC(18,2)` handling; real Postgres dialect; zero-ops. Embedded-postgres downloads a real Postgres binary on first boot (~30 MB, then cached); no Docker, no daemon, no install. JDBC over JPA — no lazy-loading or session-cache surprises. |
 | Migrations | Flyway (`V1__init.sql`, etc.) | Versioned, idempotent on boot. |
 | Decimals | `java.math.BigDecimal`, canonical scale 2 | The Java money type. **Gotcha:** `BigDecimal.equals` is scale-sensitive (`1.20 ≠ 1.2`). Canonicalize on parse, then `.equals` is the strict check the SPEC asks for. (§7) |
 | LLM SDK | `com.anthropic:anthropic-java` | Native PDF document blocks; tool-use for structured output; `cache_control` for prompt caching. |
@@ -121,7 +121,7 @@ These are the two pivot points for live extensions:
 
 ## 7. Numeric handling
 
-- Every amount enters as a `String` (from JSON / SQLite) and is parsed once via `new BigDecimal(s).setScale(2, RoundingMode.UNNECESSARY)`. `UNNECESSARY` throws if the input has more than two fractional digits — that is an extraction bug, not something to round away.
+- Every amount enters as a `String` (from JSON / Postgres) and is parsed once via `new BigDecimal(s).setScale(2, RoundingMode.UNNECESSARY)`. `UNNECESSARY` throws if the input has more than two fractional digits — that is an extraction bug, not something to round away.
 - All money is wrapped in a tiny `Money` value type (`record Money(BigDecimal value)`) with `add`, `equals`, and `toString`. This keeps `BigDecimal` out of business code and the scale gotcha out of reach.
 - `Money.equals` delegates to `BigDecimal.equals`, which is safe **because every Money instance is canonicalized to scale 2 at the boundary**. Anywhere else, `compareTo == 0` would be required and that is exactly what we want to avoid scattering.
 - Storage round-trip: a `Converter<Money, BigDecimal>` pair registered with Spring Data JDBC. The DB side is `NUMERIC(18,2)` (§3); Spring just sees `BigDecimal` and we keep `Money` in domain code.
@@ -129,7 +129,23 @@ These are the two pivot points for live extensions:
 
 ## 8. Persistence
 
-Postgres 16 in a Docker container defined in `docker-compose.yml` at the repo root. JDBC URL `jdbc:postgresql://localhost:5432/invoices`, credentials read from env (`POSTGRES_USER`, `POSTGRES_PASSWORD`) via `application.yml`. Flyway migrations under `api/src/main/resources/db/migration/` apply on boot. Chart of accounts seeded by an `ApplicationRunner` reading `api/src/main/resources/seed/chart.json` — idempotent (`INSERT ... ON CONFLICT (code) DO NOTHING`). PDFs on disk under `data/uploads/`. Postgres mounts its data dir as a named volume so a fresh clone gets a fresh DB and an existing clone keeps its state across `docker compose down`.
+No Docker. Postgres 16 is started in-process by `io.zonky.test:embedded-postgres` via a small Spring `@Configuration` class:
+
+```java
+@Bean
+EmbeddedPostgres embeddedPostgres() throws IOException {
+    return EmbeddedPostgres.builder()
+        .setPort(5432)
+        .setDataDirectory(Path.of("data/pg"))
+        .start();
+}
+```
+
+`data/pg/` is created on first boot. On subsequent boots Postgres reattaches to the existing data directory — **state is preserved across restarts** (SPEC §4.4). `data/pg/` is gitignored; `data/` is the complete durable artifact (`pg` + `uploads/`).
+
+JDBC URL `jdbc:postgresql://localhost:5432/invoices`, no credentials needed (embedded runs as the OS user). Flyway migrations under `api/src/main/resources/db/migration/` apply on boot. Chart of accounts seeded by an `ApplicationRunner` reading `api/src/main/resources/seed/chart.json` — idempotent (`INSERT ... ON CONFLICT (code) DO NOTHING`). PDFs on disk under `data/uploads/`.
+
+**One first-boot caveat:** `io.zonky.test:embedded-postgres` downloads a Postgres binary (~30 MB) on the very first run and caches it under `~/.zonky/` (or similar). This requires an internet connection once — worth doing before the interview. `./gradlew :api:bootRun` the evening before will pre-warm it.
 
 ## 9. Frontend
 
@@ -173,13 +189,13 @@ If a live extension does not appear in this table, the design has a gap — flag
 
 ## 12. Build order
 
-1. Repo skeleton: `web/` (Vite) + `api/` (Spring Boot init via `start.spring.io`) + `docker-compose.yml` (Postgres 16) + `dev.sh` (waits for Postgres health, then runs both apps) + Flyway migrations + chart seed + `PipelineService` stub.
+1. Repo skeleton: `web/` (Vite) + `api/` (Spring Boot init via `start.spring.io`) + `dev.sh` (starts both apps; no DB step needed) + embedded-postgres config + Flyway migrations + chart seed + `PipelineService` stub. Run once with internet to pre-warm the embedded Postgres binary download.
 2. Extraction call + `Money` type + validator. First fixture green via `./gradlew :api:eval`.
 3. Mapper chain (LLM mapper only) + assembler. All three fixtures green.
 4. Persistence + decision endpoint. cURL round-trip works.
 5. Frontend: upload page → review page → approve/decline.
 6. README: run instructions, what was built, what was deferred, how to extend.
-7. Smoke test: cold clone → `./dev.sh` → upload sample → approve → restart → suggestion still there.
+7. Smoke test: cold clone → `./dev.sh` (first run downloads embedded Postgres binary; ~30s) → upload sample → approve → restart → suggestion still there.
 
 Each step is a green checkpoint. If step N is red, do not start step N+1.
 
@@ -189,6 +205,6 @@ Beyond the §11 anti-goals already in SPEC:
 
 - No streaming responses. The 15s budget (§10) is comfortable for non-streamed tool-use.
 - No retries on LLM failure in v1. A failure surfaces as a clear error; the accountant re-uploads. Retry policy is a §13 candidate if it comes up live.
-- No background jobs. The pipeline runs inline in the request. SQLite + single user makes this fine.
-- No Dockerfile for the app itself — only the Postgres container from `docker-compose.yml`. `./dev.sh` is the README; it brings the DB up and runs both apps. Containerizing the API and web is a yak; the brief does not ask for it.
+- No background jobs. The pipeline runs inline in the request. Single user, embedded Postgres — this is fine.
+- No Docker, no docker-compose.yml, no Dockerfile. `./dev.sh` is the README. Postgres runs embedded; the only prereqs are JDK 21, Node 20+, and pnpm.
 - No Spring Security, no Actuator beyond `/health`, no observability stack. One user, local-only.
