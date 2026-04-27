@@ -82,6 +82,7 @@ A single Spring `@Service` method `PipelineService.run(byte[] pdf): SuggestionId
    - Debit cost account per line (LLM-chosen).
    - Debit VAT-in account for `vat_total`.
    - Credit supplier-liability account for `gross_total`.
+   - Assert each posting has exactly one of `debit` or `credit` non-zero — the SPEC §4.3 "debit OR credit" invariant made explicit in code. Also enforced as a `CHECK ((debit IS NOT NULL AND credit IS NULL) OR (debit IS NULL AND credit IS NOT NULL))` constraint in the Flyway migration, so no write path can violate it.
    - Assert total debits `.equals` total credits as `BigDecimal`. Tautological after step 3, but the check stays — defense in depth.
 6. **Persist.** One `@Transactional` boundary: write `extractions`, `suggestions`, `postings`. Emit audit event.
 
