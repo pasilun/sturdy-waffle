@@ -9,8 +9,9 @@
 ```
 ┌──────────────┐   PDF   ┌──────────────────────────────────────────┐
 │  React UI    │────────▶│              HTTP API                    │
-│  (Vite + TS) │◀────────│  POST /invoices  GET /invoices/:id       │
-└──────────────┘  JSON   │  POST /invoices/:id/decision             │
+│  (Vite + TS) │◀────────│  POST /invoices  GET /invoices/:id        │
+└──────────────┘  JSON   │  GET /invoices/:id/pdf                   │
+                         │  POST /invoices/:id/decision             │
                          └─────────────────┬────────────────────────┘
                                            │
                                            ▼
@@ -153,7 +154,7 @@ JDBC URL `jdbc:postgresql://localhost:5432/invoices`, no credentials needed (emb
 Two views, one route each:
 
 - `/` — upload zone. Drag-drop a PDF. On success, navigate to review.
-- `/invoices/:id` — split view. Left: PDF in `<iframe>` (browsers render PDFs natively; no `react-pdf` dependency for v1). Right: postings table with one row per posting. For LLM-decided rows, the reasoning sits inline as a muted line under the account name, and confidence renders as a small bar (green ≥ 0.8, amber 0.5–0.8, red < 0.5). Approve / Decline buttons at the bottom.
+- `/invoices/:id` — split view. Left: PDF in `<iframe src="/invoices/:id/pdf">` — the API reads from `data/uploads/` and streams with `Content-Type: application/pdf`; browsers render natively, no `react-pdf` dep. Right: postings table with one row per posting. For LLM-decided rows, the reasoning sits inline as a muted line under the account name, and confidence renders as a small bar (green ≥ 0.8, amber 0.5–0.8, red < 0.5). Approve / Decline buttons at the bottom.
 
 State via TanStack Query. No global store. No router beyond the two routes.
 
