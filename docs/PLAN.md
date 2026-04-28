@@ -228,6 +228,9 @@ The harness is the canary for prompt edits and model swaps; run it after any cha
 | Audit log | `audit_events` table exists; pipeline already emits events. | Frontend page that reads the table. |
 | One-line-to-many splits | `postings.line_index` allows N postings per line. Assembler does not assume 1:1. | Mapping schema gains `splits[]` per line; assembler unchanged. |
 | Edit-before-approve | `account_code` is FK, not embedded. | Frontend-only: editable cell + PATCH endpoint. |
+| Re-map without re-extract | `extractions` row stores `raw_json` + `model` + `prompt_version`. The pipeline already separates extract from map. | Add `POST /invoices/:id/remap` that loads the stored extraction, skips the extractor, and runs a fresh mapper chain. No new PDF upload needed. |
+| New invoice source (email, supplier API) | Pipeline entry point is `byte[] pdf`; source is not coupled to the HTTP controller. | New `InvoiceSource` component (e.g. `ImapInvoiceSource`) that fetches bytes and calls the same pipeline. Controller stays unchanged. |
+| Lineage queries ("which suggestions used map.v1 and scored < 0.8?") | `extractions` and `suggestions` rows carry `model` + `prompt_version`. `postings.confidence` is persisted. | SQL query on existing schema. No migration needed. |
 
 If a live extension does not appear in this table, the design has a gap — flag it rather than wing it.
 
@@ -236,7 +239,7 @@ If a live extension does not appear in this table, the design has a gap — flag
 1. ✅ Repo skeleton: `web/` (Vite) + `api/` (Spring Boot init via `start.spring.io`) + `dev.sh` (starts both apps; no DB step needed) + embedded-postgres config + Flyway migrations + chart seed + `PipelineService` stub. Domain layer package structure introduced (§1 package structure).
 2. ✅ Extraction call + `Money` type + validator + mapper + assembler + `PipelineService` wired.
 3. ✅ Eval harness: `PipelineService.evaluate()`, `EvalResult`, expected JSON files, `EvalRunner` table output. All three fixtures green (`3 passed, 0 failed`). Actual results: lunch 1/1 @ 0.95, rent 1/1 @ 0.99, sample 3/3 @ 0.95. `PostgresConfig` and `ChartSeeder` gated `@Profile("!eval")`; `application-eval.yml` excludes DataSource/Flyway autoconfiguration.
-4. Persistence + decision endpoint. cURL round-trip works.
+4. ✅ Persistence + decision endpoint. cURL round-trip works.
 5. Frontend: upload page → review page → approve/decline.
 6. README: run instructions, what was built, what was deferred, how to extend.
 7. Smoke test: cold clone → `./dev.sh` (first run downloads embedded Postgres binary; ~30s) → upload sample → approve → restart → suggestion still there.
