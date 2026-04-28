@@ -1,0 +1,50 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R
+   /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >>
+   /MediaBox [0 0 612 792] /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 655 >>
+stream
+BT
+/F1 11 Tf
+72 730 Tm (INVOICE) Tj
+72 714 Tm () Tj
+72 698 Tm (Supplier:   Restaurang Smakfullt AB) Tj
+72 682 Tm (Invoice #:  INV-2024-089) Tj
+72 666 Tm (Date:       2024-03-15) Tj
+72 650 Tm (Currency:   SEK) Tj
+72 634 Tm () Tj
+72 618 Tm (Description                         Net \(SEK\)) Tj
+72 602 Tm (-------------------------------------------) Tj
+72 586 Tm (Staff lunch meeting 2024-03-14       960.00) Tj
+72 570 Tm (Coffee and refreshments              240.00) Tj
+72 554 Tm () Tj
+72 538 Tm (Net total:    1200.00) Tj
+72 522 Tm (VAT \(25%\):     300.00) Tj
+72 506 Tm (Gross total:  1500.00) Tj
+72 490 Tm () Tj
+72 474 Tm (Payment due: 2024-04-14) Tj
+ET
+
+endstream
+endobj
+xref
+0 5
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000296 00000 n 
+trailer
+<< /Size 5 /Root 1 0 R >>
+startxref
+1002
+%%EOF

@@ -14,7 +14,7 @@ Implementation plan. Companion to [[spec-invoice-to-journal]]. Every decision tr
 
 ## TL;DR
 
-Java 21 + Spring Boot 3 + Postgres 16 in Docker (`NUMERIC(18,2)` for decimals — see [[postgres-numeric-for-decimals]]) + Flyway + Vite/React/TS. Single Spring `@Service` runs an inline pipeline: store → extract → validate → map → assemble → persist. Two LLM calls only (extract, map), both behind project-shaped interfaces (`Extractor`, `Mapper`) so the pipeline holds no SDK references — see [[extractor-as-provider-seam]]. v1 uses Anthropic; provider swap (e.g. OpenAI) is a 2-class change with the multimodal asymmetry contained inside the new `Extractor` (see [[llm-provider-portability]]). Three golden-case fixtures gate prompt edits via `./gradlew :api:eval`.
+Java 21 + Spring Boot 3 + Postgres via `io.zonky.test:embedded-postgres` (no Docker — real Postgres binary, in-process, data at `api/data/pg/`) + `NUMERIC(18,2)` for decimals (see [[postgres-numeric-for-decimals]]) + Flyway + Vite/React/TS. Single Spring `@Service` runs an inline pipeline: store → extract → validate → map → assemble → persist. Two LLM calls only (extract, map), both behind project-shaped interfaces (`Extractor`, `Mapper`) so the pipeline holds no SDK references — see [[extractor-as-provider-seam]]. v1 uses Anthropic; provider swap (e.g. OpenAI) is a 2-class change with the multimodal asymmetry contained inside the new `Extractor` (see [[llm-provider-portability]]). Three golden-case fixtures gate prompt edits via `./gradlew :api:eval`.
 
 ## Three principles (priority order)
 

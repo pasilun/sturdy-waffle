@@ -1,4 +1,4 @@
-package com.sturdywaffle.pipeline;
+package com.sturdywaffle.domain.model;
 
 import java.util.UUID;
 

@@ -32,6 +32,20 @@ export JAVA_HOME="$_jdk21"
 export PATH="$JAVA_HOME/bin:$PATH"
 echo "→ Java $(_java_version "$JAVA_HOME/bin/java") at $JAVA_HOME"
 
+# ── API key ──────────────────────────────────────────────────────────────────
+_env_file="$ROOT_DIR/api/.env"
+if [ ! -f "$_env_file" ]; then
+    _key_file="$HOME/src/interview 2/anthropic_api_key.txt"
+    if [ -f "$_key_file" ]; then
+        echo "ANTHROPIC_API_KEY=$(cat "$_key_file")" > "$_env_file"
+        echo "→ Created api/.env from key file"
+    else
+        echo "✗  api/.env not found. Create it: echo 'ANTHROPIC_API_KEY=sk-ant-...' > api/.env"
+        exit 1
+    fi
+fi
+set -a; source "$_env_file"; set +a
+
 # ── API ──────────────────────────────────────────────────────────────────────
 echo "→ Starting API (Spring Boot) on :8080 …"
 cd "$ROOT_DIR/api"

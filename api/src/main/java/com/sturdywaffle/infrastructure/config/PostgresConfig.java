@@ -1,4 +1,4 @@
-package com.sturdywaffle.config;
+package com.sturdywaffle.infrastructure.config;
 
 import io.zonky.test.db.postgres.embedded.EmbeddedPostgres;
 import org.springframework.context.annotation.Bean;
@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 import javax.sql.DataSource;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,7 +20,7 @@ public class PostgresConfig {
         return EmbeddedPostgres.builder()
                 .setPort(5432)
                 .setDataDirectory(dataDir)
-                .setCleanDataDirectory(false)   // preserve data across restarts
+                .setCleanDataDirectory(false)
                 .start();
     }
 

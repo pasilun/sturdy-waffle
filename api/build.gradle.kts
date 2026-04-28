@@ -24,18 +24,20 @@ dependencies {
 	implementation("org.flywaydb:flyway-database-postgresql")
 	runtimeOnly("org.postgresql:postgresql")
 	implementation("io.zonky.test:embedded-postgres:2.0.7")
-	// Phase 2: LLM calls
-	// implementation("com.anthropic:anthropic-java:1.3.0")
+	implementation("com.anthropic:anthropic-java:2.27.0")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 // Eval task — runs PipelineService against golden fixtures
 tasks.register<JavaExec>("eval") {
-	dependsOn("compileJava")
+	dependsOn("classes")
 	classpath = sourceSets["main"].runtimeClasspath
 	mainClass = "com.sturdywaffle.eval.EvalRunner"
 	systemProperty("spring.profiles.active", "eval")
+	javaLauncher = javaToolchains.launcherFor {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
 }
 
 tasks.withType<Test> {

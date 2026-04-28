@@ -1,7 +1,7 @@
 package com.sturdywaffle.web;
 
-import com.sturdywaffle.pipeline.PipelineService;
-import com.sturdywaffle.pipeline.SuggestionId;
+import com.sturdywaffle.application.PipelineService;
+import com.sturdywaffle.domain.model.SuggestionId;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

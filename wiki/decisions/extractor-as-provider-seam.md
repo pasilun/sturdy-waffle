@@ -4,7 +4,7 @@ type: decision
 status: accepted
 decision_date: 2026-04-27
 created: 2026-04-27
-updated: 2026-04-27
+updated: 2026-04-28
 tags: [invoice-to-journal, llm, architecture]
 ---
 
@@ -22,7 +22,7 @@ public interface Extractor {
 }
 ```
 
-The two interfaces are documented together in [[plan-invoice-to-journal]] §6 ("Provider seams").
+Both interfaces live in `com.sturdywaffle.domain.port/` (moved there as part of [[domain-layer-introduction]]). The two interfaces are documented together in [[plan-invoice-to-journal]] §6 ("Provider seams").
 
 ## Rationale
 

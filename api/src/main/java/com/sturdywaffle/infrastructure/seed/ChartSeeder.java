@@ -1,4 +1,4 @@
-package com.sturdywaffle.seed;
+package com.sturdywaffle.infrastructure.seed;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

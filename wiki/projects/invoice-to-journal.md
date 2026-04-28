@@ -4,7 +4,7 @@ type: project
 status: active
 project_path: ../..
 created: 2026-04-27
-updated: 2026-04-28
+updated: 2026-04-29
 tags: [interview, llm, accounting, java, react, postgres]
 ---
 
@@ -14,16 +14,18 @@ Take-home interview project. A web app where an accountant uploads a PDF invoice
 
 ## Status
 
-**Phase 1 complete (2026-04-28).** Bootable shell with durable storage. See [build order](../sources/plan-invoice-to-journal.md) §12.
+**Phase 2 complete (2026-04-29).** Full LLM pipeline live; `sample.pdf` passes eval end-to-end. See [build order](../sources/plan-invoice-to-journal.md) §12.
 
 | Phase | Description | Status |
 |---|---|---|
 | 1 — Foundation | Repo skeleton, embedded Postgres, Flyway, chart seed, pipeline stub | ✅ done |
-| 2 — Pipeline core | Money record, extractor, validator, mapper, assembler, eval harness | ⬜ next |
-| 3 — Persistence + API | Transactional persist, GET /invoices/:id, decision endpoint | ⬜ |
+| 2 — Pipeline core | Extractor, Validator, Mapper, Assembler, eval harness | ✅ done |
+| 3 — Persistence + API | Transactional persist, GET /invoices/:id, decision endpoint | ⬜ next |
 | 4 — Frontend + polish | Upload page, review page, README, smoke test | ⬜ |
 
-Phase 1 exit check passed: `./dev.sh` boots cleanly (Java 21 auto-detected), Flyway shows 1 migration applied on first boot and "up to date" on restarts, `/health` returns 200, data survives restart.
+Phase 2 exit check: `./gradlew eval` with `ANTHROPIC_API_KEY` set; `sample.pdf` → PASS (balanced journal, correct accounts). Two additional fixtures (`rent.pdf`, `lunch.pdf`) need real PDFs — synthetic ones are not readable by Claude's PDF parser.
+
+Open: need real invoice PDFs for rent and lunch fixtures (user to fetch from web).
 
 ## Why this exists
 
@@ -31,13 +33,14 @@ Live interview test of how the candidate uses AI tools to build a real product. 
 
 ## Architecture (one paragraph)
 
-Spring Boot 3.5 + Java 21 backend, Vite + React + TypeScript frontend, `io.zonky.test:embedded-postgres` (real Postgres 14 process, in-process, data at `api/data/pg/`) + Spring Data JDBC + Flyway. Single Spring `@Service` runs the inline pipeline: store PDF → call configured `Extractor` (Anthropic in v1, with PDF document block + tool-use) → validate `net + vat == gross` strictly → map each line via mapper chain (LLM-only in v1, supplier-rule shortcut later) → assemble balanced postings → persist in one transaction. Two LLM calls only (extract, map); see [[two-llm-calls-not-one]]. Both calls sit behind project-shaped interfaces — see [[extractor-as-provider-seam]]. Arithmetic is always code, never LLM — see [[llm-no-arithmetic]].
+Spring Boot 3.5 + Java 21 backend, Vite + React + TypeScript frontend, `io.zonky.test:embedded-postgres:2.0.7` (real Postgres 14.10 process, in-process, data at `api/data/pg/`; PLAN targeted 16 but the 2.0.7 binary ships 14.10) + Spring Data JDBC + Flyway. Four-layer package structure (`domain/` → `application/` → `infrastructure/` + `web/`); see [[domain-layer-introduction]]. Single Spring `@Service` (`application.PipelineService`) runs the inline pipeline: store PDF → call configured `Extractor` (Anthropic in v1, with PDF document block + tool-use) → `Validator` checks `net + vat == gross` strictly → map each line via mapper chain (LLM-only in v1, supplier-rule shortcut later) → `Assembler` builds balanced postings → persist in one transaction. Two LLM calls only (extract, map); see [[two-llm-calls-not-one]]. Both calls sit behind `domain/port/` interfaces — see [[extractor-as-provider-seam]]. Arithmetic is always code, never LLM — see [[llm-no-arithmetic]].
 
 ## Key design decisions
 
 - [[two-llm-calls-not-one]] — extraction and mapping are separate calls.
 - [[postgres-numeric-for-decimals]] — money is `NUMERIC(18,2)` in Postgres; supersedes [[sqlite-text-for-decimals]].
 - [[extractor-as-provider-seam]] — pipeline holds an `Extractor` interface, not an SDK; symmetric with `Mapper`. Concretizes [[llm-provider-portability]].
+- [[domain-layer-introduction]] — four-layer package structure (`domain/`, `application/`, `infrastructure/`, `web/`); `Validator` and `Assembler` are pure Java in `domain/service/`, testable without Spring.
 - Confidence and reasoning are attached to mappings only, not extracted numbers ([[spec-invoice-to-journal]] §4.2).
 - Edit-before-approve is deferred to v2; data model accommodates it via FK on `account_code`.
 
@@ -64,7 +67,6 @@ If a live ask doesn't fit any row, that's a design gap — flag, don't wing it.
 
 ## Open questions / things to track
 
-- Phase 2: need to confirm exact Maven coordinates + version for `com.anthropic:anthropic-java` SDK before wiring the extractor.
-- Phase 2: prompt iteration will be the highest-variance step — latency, structured-output schema tuning, fixture green rates.
-- An Anthropic API key is stored at `~/src/interview 2/anthropic_api_key.txt` (out-of-band credential — do not read or commit).
+- Real PDF fixtures needed: `rent.pdf` and `lunch.pdf` — synthetic PDFs generated by raw PDF writer are visually empty to Claude's vision parser. Need actual invoice PDFs with embedded text rendered at valid positions.
+- An Anthropic API key is at `~/Downloads/interview (1)/interview/anthropic_api_key.txt` (out-of-band — do not commit). Set as `ANTHROPIC_API_KEY` env var to run eval or dev server.
 - [[embedded-postgres-clean-data-gotcha]] — `setCleanDataDirectory(false)` is required; without it the library reinitializes the cluster on every boot.

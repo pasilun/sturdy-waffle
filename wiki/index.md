@@ -14,7 +14,7 @@ The catalog of everything in this wiki. The LLM updates this on every ingest. Pa
 ## Concepts
 
 - [[llm-no-arithmetic]] — Principle: LLMs handle judgment (mapping, classification); deterministic code handles arithmetic (balancing, validation).
-- [[bigdecimal-scale-equality]] — Java gotcha: `BigDecimal.equals` is scale-sensitive (`1.20 ≠ 1.2`); canonicalize on parse, then `.equals` is safe.
+- [[bigdecimal-scale-equality]] — Java gotcha: `BigDecimal.equals` is scale-sensitive (`1.20 ≠ 1.2`); canonicalize on parse with `Money.of()`, then `.equals` is safe.
 - [[llm-provider-portability]] — Anthropic↔OpenAI: prompts and JSON schemas port cheaply; multimodal inputs (PDFs, images) are the expensive asymmetry. Defense: project-shaped interfaces.
 - [[embedded-postgres-clean-data-gotcha]] — `io.zonky.test:embedded-postgres` reinitializes the cluster on every boot by default; `setCleanDataDirectory(false)` required for state to persist.
 
@@ -23,6 +23,7 @@ The catalog of everything in this wiki. The LLM updates this on every ingest. Pa
 - [[two-llm-calls-not-one]] — Invoice-to-Journal: extraction and mapping run as two separate LLM calls, not one combined call.
 - [[postgres-numeric-for-decimals]] — Invoice-to-Journal: monetary amounts stored as `NUMERIC(18,2)` in Postgres. Supersedes the SQLite TEXT decision.
 - [[extractor-as-provider-seam]] — Invoice-to-Journal: pipeline depends on an `Extractor` interface, not the Anthropic SDK; symmetric with `Mapper`.
+- [[domain-layer-introduction]] — Invoice-to-Journal: four-layer package structure (`domain/`, `application/`, `infrastructure/`, `web/`); domain services testable without Spring.
 - [[sqlite-text-for-decimals]] — _superseded_ by [[postgres-numeric-for-decimals]]. Kept for the SQLite-specific rationale.
 
 ## Sessions

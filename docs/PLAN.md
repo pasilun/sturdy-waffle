@@ -33,6 +33,28 @@ Three principles, in priority order:
 2. **Every layer is replaceable.** Mapper, extractor, store, UI — all behind interfaces, so live extensions land as new files, not edits to old ones. (§9.1)
 3. **Trust is surfaced, not asserted.** Reasoning + confidence ride alongside every mapping decision into the UI. (§9.3)
 
+### Package structure
+
+```
+com.sturdywaffle/
+├── domain/                     ← zero Spring / SDK imports
+│   ├── model/                  ← Money, Account, InvoiceLine, ExtractedInvoice,
+│   │                               MappingProposal, Posting, SuggestionId
+│   ├── port/                   ← Extractor, Mapper (interfaces the domain owns)
+│   ├── service/                ← Validator, Assembler (pure logic, no framework)
+│   └── exception/              ← ExtractionException, ValidationException
+├── application/                ← PipelineService (orchestration; depends on domain)
+├── infrastructure/             ← Spring, JDBC, Anthropic SDK
+│   ├── config/                 ← PostgresConfig
+│   ├── llm/                    ← AnthropicExtractor, AnthropicMapper (Phase 2)
+│   ├── persistence/            ← repositories (Phase 2)
+│   └── seed/                   ← ChartSeeder
+├── web/                        ← InvoiceController, HealthController
+└── eval/                       ← EvalRunner (Phase 2)
+```
+
+Dependency rule: `domain` → nothing; `application` → `domain`; `infrastructure` → `domain` + Spring + SDK; `web` → `application` + `domain.model`.
+
 ## 2. Stack
 
 | Layer | Choice | Why |
@@ -101,21 +123,23 @@ Prompt caching: the chart of accounts and system prompt are stable. On Anthropic
 
 ## 6. Provider seams
 
-Two interfaces, both provider-agnostic. The pipeline (§4) only knows about these — it never imports an SDK.
+Two interfaces in `domain/port/`, both provider-agnostic. The pipeline (§4) only knows about these — it never imports an SDK.
 
 ```java
+// domain/port/Extractor.java
 public interface Extractor {
     ExtractedInvoice extract(byte[] pdf);
 }
 
+// domain/port/Mapper.java
 public interface Mapper {
-    Optional<MappingProposal> map(Invoice invoice, Line line);
+    Optional<MappingProposal> map(String supplierName, InvoiceLine line);
 }
 ```
 
-v1 wiring:
-- `Extractor`: single bean, `AnthropicExtractor`. PDF in via `document` block; structured output via tool-use.
-- `Mapper`: `List<Mapper>` Spring bean = `[LlmMapper]` (Anthropic). The first mapper to return a present `Optional` wins.
+v1 wiring (Phase 2):
+- `Extractor`: single bean, `infrastructure/llm/AnthropicExtractor`. PDF in via `document` block; structured output via tool-use.
+- `Mapper`: `List<Mapper>` Spring bean = `[AnthropicMapper]`. The first mapper to return a present `Optional` wins.
 
 These are the two pivot points for live extensions:
 - **Provider swap** (e.g. OpenAI). Add `OpenAiExtractor` and `OpenAiLlmMapper` next to the Anthropic ones, switch beans via a `@ConditionalOnProperty("llm.provider")` config. The pipeline does not move. The asymmetry to budget for: OpenAI does not accept PDFs as a content block — the `OpenAiExtractor` either rasterizes pages (PDFBox dep) or uploads via the Files API. That cost lives entirely inside the new `Extractor` impl.
@@ -191,7 +215,7 @@ If a live extension does not appear in this table, the design has a gap — flag
 
 ## 12. Build order
 
-1. Repo skeleton: `web/` (Vite) + `api/` (Spring Boot init via `start.spring.io`) + `dev.sh` (starts both apps; no DB step needed) + embedded-postgres config + Flyway migrations + chart seed + `PipelineService` stub. Run once with internet to pre-warm the embedded Postgres binary download.
+1. ✅ Repo skeleton: `web/` (Vite) + `api/` (Spring Boot init via `start.spring.io`) + `dev.sh` (starts both apps; no DB step needed) + embedded-postgres config + Flyway migrations + chart seed + `PipelineService` stub. Domain layer package structure introduced (§1 package structure).
 2. Extraction call + `Money` type + validator. First fixture green via `./gradlew :api:eval`.
 3. Mapper chain (LLM mapper only) + assembler. All three fixtures green.
 4. Persistence + decision endpoint. cURL round-trip works.
