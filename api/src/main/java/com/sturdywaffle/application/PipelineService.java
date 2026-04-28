@@ -24,9 +24,20 @@ public class PipelineService {
     }
 
     public SuggestionId run(byte[] pdf, String originalFilename) {
+        process(pdf);
+        // Phase 3: persist to DB; for now return a stable placeholder
+        return new SuggestionId(UUID.randomUUID());
+    }
+
+    public EvalResult evaluate(byte[] pdf) {
+        long start = System.currentTimeMillis();
+        PipelineOutput out = process(pdf);
+        return new EvalResult(out.extracted(), out.postings(), System.currentTimeMillis() - start);
+    }
+
+    private PipelineOutput process(byte[] pdf) {
         ExtractedInvoice extracted = extractor.extract(pdf);
         validator.validate(extracted);
-
         List<MappingProposal> proposals = extracted.lines().stream()
                 .map(line -> mappers.stream()
                         .flatMap(m -> m.map(extracted.supplierName(), line).stream())
@@ -34,10 +45,9 @@ public class PipelineService {
                         .orElseThrow(() -> new IllegalStateException(
                                 "No mapper could handle line: " + line.description())))
                 .toList();
-
         List<Posting> postings = assembler.assemble(extracted, proposals);
-
-        // Phase 3: persist to DB; for now return a stable placeholder
-        return new SuggestionId(UUID.randomUUID());
+        return new PipelineOutput(extracted, postings);
     }
+
+    private record PipelineOutput(ExtractedInvoice extracted, List<Posting> postings) {}
 }

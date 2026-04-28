@@ -1,49 +1,74 @@
-%PDF-1.4
+%PDF-1.3
+%“Œ‹ž ReportLab Generated PDF document (opensource)
 1 0 obj
-<< /Type /Catalog /Pages 2 0 R >>
+<<
+/F1 2 0 R /F2 3 0 R
+>>
 endobj
 2 0 obj
-<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+<<
+/BaseFont /Helvetica /Encoding /WinAnsiEncoding /Name /F1 /Subtype /Type1 /Type /Font
+>>
 endobj
 3 0 obj
-<< /Type /Page /Parent 2 0 R
-   /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >>
-   /MediaBox [0 0 612 792] /Contents 4 0 R >>
+<<
+/BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding /Name /F2 /Subtype /Type1 /Type /Font
+>>
 endobj
 4 0 obj
-<< /Length 593 >>
-stream
-BT
-/F1 11 Tf
-72 730 Tm (INVOICE) Tj
-72 714 Tm () Tj
-72 698 Tm (Supplier:   Fastighets AB Storgatan) Tj
-72 682 Tm (Invoice #:  2024-0312) Tj
-72 666 Tm (Date:       2024-03-01) Tj
-72 650 Tm (Currency:   SEK) Tj
-72 634 Tm () Tj
-72 618 Tm (Description                         Net \(SEK\)) Tj
-72 602 Tm (-------------------------------------------) Tj
-72 586 Tm (Office rent March 2024              8000.00) Tj
-72 570 Tm () Tj
-72 554 Tm (Net total:    8000.00) Tj
-72 538 Tm (VAT \(25%\):    2000.00) Tj
-72 522 Tm (Gross total: 10000.00) Tj
-72 506 Tm () Tj
-72 490 Tm (Payment due: 2024-03-30) Tj
-ET
+<<
+/Contents 8 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 7 0 R /Resources <<
+/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
+>> /Rotate 0 /Trans <<
 
-endstream
+>> 
+  /Type /Page
+>>
+endobj
+5 0 obj
+<<
+/PageMode /UseNone /Pages 7 0 R /Type /Catalog
+>>
+endobj
+6 0 obj
+<<
+/Author (anonymous) /CreationDate (D:20260428211823+02'00') /Creator (anonymous) /Keywords () /ModDate (D:20260428211823+02'00') /Producer (ReportLab PDF Library - \(opensource\)) 
+  /Subject (unspecified) /Title (untitled) /Trapped /False
+>>
+endobj
+7 0 obj
+<<
+/Count 1 /Kids [ 4 0 R ] /Type /Pages
+>>
+endobj
+8 0 obj
+<<
+/Filter [ /ASCII85Decode /FlateDecode ] /Length 776
+>>
+stream
+GatUqbAQ'"$q9ph$>p3H7Ec6%S;4b`JU!Bc"_r1Hbqr9;f6S9s*413&89Q#qYIO!i$UXU5+c#+i-r<1rpE9VUa7*e05Rd/rOJ"jd#<21b2U9+<M/t%:)ZsTt7N<""Dic.^6(GdAA98c?s#0]RnP=s*G)V72"#TQt.mlkAq)*f*BjEhPSr5G+?kTJc5'p&iUkI-?f:7@p8ig[g"j(IrXhU/Xbf_.H@u9kDN-0QtI5s;5CS[5VMdJ`NjVip\QskoaT6JeJ.J3LR=qm->#+T6]'Y/>i_kLJ&+^\e`;@`GB4^fbiTd.0Z31Z!4XB5[!'42"n"q?^`!^;?bQ!MPap"Q\['O;!b*f\U;rk$e5Q;8YuMuNkFHN")tQN@en7!@D:j.m0!50mllb</K8`Pkp62:W$T_^q%6-Zr_m'BQ[?XgL\dDF7PYb5"]JH$D$Mh%Ze8)s)35%h"%L>G<LTf1HL<jh*VuMC^6XGM1DR\a0UmDA!;qYs8L_HSh>MCFk2()&7Vn&rgA>[YN]SMi^.&/d#XXXIs86\7]u(]?4d:/CYgJibMYn+U<FkAeC^Q.t)%kP.G84hOFMjr`Ub)8fcSc8u"-#hUHWt`YpFMY@*jHH1fUJ7;nE@<>I1.HGb3bDo?L)?DA/#qL[tV/KE((h"-Mdco0_.fR5BX$J<"@"/2W,&GQOJkt0bV3(=SWod_bsC\Z:NHT2)c*#]F@=#CPb/tpp(l1Q=UBaOTE2D9t3*.I.tSHcu`U*A8n@V,+pPY#0jiRfpgn,<<Ij5]>~>endstream
 endobj
 xref
-0 5
+0 9
 0000000000 65535 f 
-0000000009 00000 n 
-0000000058 00000 n 
-0000000115 00000 n 
-0000000296 00000 n 
+0000000061 00000 n 
+0000000102 00000 n 
+0000000209 00000 n 
+0000000321 00000 n 
+0000000524 00000 n 
+0000000592 00000 n 
+0000000853 00000 n 
+0000000912 00000 n 
 trailer
-<< /Size 5 /Root 1 0 R >>
+<<
+/ID 
+[<d940753e9fe87164e03d91131a6f116d><d940753e9fe87164e03d91131a6f116d>]
+% ReportLab generated PDF document -- digest (opensource)
+
+/Info 6 0 R
+/Root 5 0 R
+/Size 9
+>>
 startxref
-940
+1778
 %%EOF

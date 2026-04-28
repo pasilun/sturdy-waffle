@@ -1,0 +1,8 @@
+{
+  "netTotal": "480.00",
+  "vatTotal": "57.60",
+  "grossTotal": "537.60",
+  "lines": [
+    { "accountCode": "7731" }
+  ]
+}

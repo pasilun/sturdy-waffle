@@ -184,8 +184,9 @@ State via TanStack Query. No global store. No router beyond the two routes.
 
 ## 10. Eval harness
 
-A Gradle task: `./gradlew :api:eval`. Backed by an `EvalRunner` `@Component` activated under the `eval` Spring profile, it loads the same `PipelineService` bean the HTTP layer uses (not a parallel codepath), runs each fixture in `api/src/eval/fixtures/`, and prints a table:
+A Gradle task: `./gradlew :api:eval`. Backed by `EvalRunner` under the `eval` Spring profile, it calls a `PipelineService.evaluate(byte[])` method that runs the full pipeline (extract → validate → map → assemble) and returns an `EvalResult` — without persisting to DB. The HTTP `run()` path is unchanged.
 
+Output format:
 ```
 case             extract    map@1    confidence    latency
 sample.pdf       PASS       3/3      0.91 avg      4.2s
@@ -193,12 +194,29 @@ rent.pdf         PASS       1/1      0.88          2.1s
 lunch.pdf        PASS       1/1      0.74          2.4s
 ```
 
-Fixtures (§12 row 5):
-1. The provided sample.
-2. A rent invoice (single line, "rent" account).
-3. A staff lunch (single line, "staff meals" account, lower confidence expected — boundary case between staff meals and entertainment).
+- **extract PASS** — no `ExtractionException` or `ValidationException`; amounts balance.
+- **map N/N** — N lines whose first posting matched the expected account code in `{name}.expected.json`.
+- **confidence** — average `MappingProposal.confidence` across all lines.
+- **latency** — wall-clock ms for the full evaluate call.
 
-Each fixture is `{name}.pdf` plus `{name}.expected.json` with the expected mapping. The harness is the canary for prompt edits and model swaps; running it is the first thing to do after any change under `resources/prompts/`.
+**Expected JSON format** (`{name}.expected.json`, one per fixture):
+```json
+{
+  "netTotal": "8000.00",
+  "vatTotal": "2000.00",
+  "grossTotal": "10000.00",
+  "lines": [
+    { "accountCode": "5010" }
+  ]
+}
+```
+
+Fixtures:
+1. `sample.pdf` — the provided interview sample (multiple lines).
+2. `rent.pdf` — Stockholms Fastigheter AB, lokalhyra, SEK 8000+2000 VAT → account `5010`.
+3. `lunch.pdf` — Restaurang Söder AB, teamlunch, SEK 480+57.60 VAT → account `7731` (boundary case; lower confidence expected).
+
+The harness is the canary for prompt edits and model swaps; run it after any change under `resources/prompts/`.
 
 ## 11. Live extension defenses (answers SPEC §13)
 
@@ -216,8 +234,8 @@ If a live extension does not appear in this table, the design has a gap — flag
 ## 12. Build order
 
 1. ✅ Repo skeleton: `web/` (Vite) + `api/` (Spring Boot init via `start.spring.io`) + `dev.sh` (starts both apps; no DB step needed) + embedded-postgres config + Flyway migrations + chart seed + `PipelineService` stub. Domain layer package structure introduced (§1 package structure).
-2. Extraction call + `Money` type + validator. First fixture green via `./gradlew :api:eval`.
-3. Mapper chain (LLM mapper only) + assembler. All three fixtures green.
+2. ✅ Extraction call + `Money` type + validator + mapper + assembler + `PipelineService` wired.
+3. ✅ Eval harness: `PipelineService.evaluate()`, `EvalResult`, expected JSON files, `EvalRunner` table output. All three fixtures green (`3 passed, 0 failed`). Actual results: lunch 1/1 @ 0.95, rent 1/1 @ 0.99, sample 3/3 @ 0.95. `PostgresConfig` and `ChartSeeder` gated `@Profile("!eval")`; `application-eval.yml` excludes DataSource/Flyway autoconfiguration.
 4. Persistence + decision endpoint. cURL round-trip works.
 5. Frontend: upload page → review page → approve/decline.
 6. README: run instructions, what was built, what was deferred, how to extend.
