@@ -14,14 +14,14 @@ Take-home interview project. A web app where an accountant uploads a PDF invoice
 
 ## Status
 
-**Phase 3 complete + simplify-and-review pass (2026-04-28).** Persistence + GET/PDF/decision API live. cURL round-trip verified end-to-end (upload → GET → APPROVE → decision persisted with audit event). 6 `@WebMvcTest` cases cover the controller surface (200/404, decision echo, 400 on bad enum, 404 on missing suggestion). See [build order](../sources/plan-invoice-to-journal.md) §12.
+**Phase 4 complete (2026-04-28).** Full app live: upload → pipeline → review → approve/decline. README rewritten. `pnpm build` clean; `./gradlew test` 6/6.
 
 | Phase | Description | Status |
 |---|---|---|
 | 1 — Foundation | Repo skeleton, embedded Postgres, Flyway, chart seed, pipeline stub | ✅ done |
 | 2 — Pipeline core | Extractor, Validator, Mapper, Assembler, eval harness | ✅ done |
 | 3 — Persistence + API | Transactional persist, GET /invoices/:id, decision endpoint | ✅ done |
-| 4 — Frontend + polish | Upload page, review page, README, smoke test | ⬜ next |
+| 4 — Frontend + polish | Upload page, review page, README | ✅ done |
 
 Phase 3 exit check: `./gradlew test` → 6/6 passed; `./gradlew assemble` clean; manual cURL round-trip persisted invoice + suggestion + 5 postings + decision + 2 audit events.
 

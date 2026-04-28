@@ -1,0 +1,211 @@
+import { useParams } from 'react-router-dom'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { fetchSuggestion, recordDecision, type SuggestionResponse, type PostingResponse } from './api'
+
+function ConfidenceBar({ value }: { value: number | null }) {
+  if (value === null) return null
+  const pct = Math.round(value * 100)
+  const color = value >= 0.8 ? 'bg-green-500' : value >= 0.5 ? 'bg-amber-400' : 'bg-red-400'
+  return (
+    <div className="flex items-center gap-2 mt-1">
+      <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+        <div className={`h-full ${color} rounded-full`} style={{ width: `${pct}%` }} />
+      </div>
+      <span className="text-xs text-gray-400 w-8 text-right">{pct}%</span>
+    </div>
+  )
+}
+
+function PostingsTable({ postings }: { postings: PostingResponse[] }) {
+  return (
+    <table className="w-full text-sm">
+      <thead>
+        <tr className="text-left text-xs text-gray-500 border-b border-gray-100">
+          <th className="pb-2 pr-3 font-medium">Account</th>
+          <th className="pb-2 pr-3 font-medium text-right">Debit</th>
+          <th className="pb-2 font-medium text-right">Credit</th>
+        </tr>
+      </thead>
+      <tbody>
+        {postings.map((p, i) => (
+          <tr key={i} className="border-b border-gray-50 last:border-0">
+            <td className="py-3 pr-3">
+              <div className="font-medium text-gray-800">
+                {p.accountCode} — {p.accountName}
+              </div>
+              {p.description && (
+                <div className="text-xs text-gray-500 mt-0.5">{p.description}</div>
+              )}
+              {p.reasoning && (
+                <div className="text-xs text-gray-400 italic mt-0.5">{p.reasoning}</div>
+              )}
+              <ConfidenceBar value={p.confidence} />
+            </td>
+            <td className="py-3 pr-3 text-right font-mono text-gray-700 align-top">
+              {p.debit !== '0.00' ? p.debit : ''}
+            </td>
+            <td className="py-3 text-right font-mono text-gray-700 align-top">
+              {p.credit !== '0.00' ? p.credit : ''}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}
+
+function DecisionPanel({
+  suggestion,
+  onDecide,
+  deciding,
+}: {
+  suggestion: SuggestionResponse
+  onDecide: (status: 'APPROVED' | 'DECLINED') => void
+  deciding: boolean
+}) {
+  const { decision } = suggestion
+
+  if (decision) {
+    const isApproved = decision.status === 'APPROVED'
+    return (
+      <div
+        className={`rounded-lg p-4 text-sm font-medium ${
+          isApproved ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
+        }`}
+      >
+        {isApproved ? 'Approved' : 'Declined'} on{' '}
+        {new Date(decision.decidedAt).toLocaleString()}
+        {decision.note && <div className="font-normal mt-1 text-xs">{decision.note}</div>}
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex gap-3">
+      <button
+        onClick={() => onDecide('APPROVED')}
+        disabled={deciding}
+        className="flex-1 py-2.5 px-4 rounded-lg bg-green-600 text-white font-medium text-sm hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      >
+        Approve
+      </button>
+      <button
+        onClick={() => onDecide('DECLINED')}
+        disabled={deciding}
+        className="flex-1 py-2.5 px-4 rounded-lg bg-red-600 text-white font-medium text-sm hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      >
+        Decline
+      </button>
+    </div>
+  )
+}
+
+function InvoiceHeader({ s }: { s: SuggestionResponse }) {
+  return (
+    <div className="mb-6">
+      <h2 className="text-lg font-semibold text-gray-800">{s.supplierName}</h2>
+      <div className="text-sm text-gray-500 mt-1">
+        #{s.invoiceNumber} &middot; {s.invoiceDate}
+      </div>
+      <div className="flex gap-6 mt-3 text-sm">
+        <div>
+          <span className="text-gray-400">Net</span>
+          <div className="font-mono font-medium text-gray-700">
+            {s.net} {s.currency}
+          </div>
+        </div>
+        <div>
+          <span className="text-gray-400">VAT</span>
+          <div className="font-mono font-medium text-gray-700">
+            {s.vat} {s.currency}
+          </div>
+        </div>
+        <div>
+          <span className="text-gray-400">Gross</span>
+          <div className="font-mono font-medium text-gray-700">
+            {s.gross} {s.currency}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function ReviewPage() {
+  const { id } = useParams<{ id: string }>()
+  const queryClient = useQueryClient()
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['suggestion', id],
+    queryFn: () => fetchSuggestion(id!),
+    enabled: !!id,
+  })
+
+  const mutation = useMutation({
+    mutationFn: (status: 'APPROVED' | 'DECLINED') => recordDecision(id!, status),
+    onSuccess: decision => {
+      queryClient.setQueryData(['suggestion', id], (old: SuggestionResponse) => ({
+        ...old,
+        decision,
+      }))
+    },
+  })
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-500">Loading…</div>
+      </div>
+    )
+  }
+
+  if (error || !data) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-red-600">
+          {error instanceof Error ? error.message : 'Failed to load suggestion'}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex h-screen bg-white">
+      {/* Left: PDF viewer */}
+      <div className="w-1/2 border-r border-gray-200">
+        <iframe
+          src={`/invoices/${id}/pdf`}
+          className="w-full h-full"
+          title="Invoice PDF"
+        />
+      </div>
+
+      {/* Right: review panel */}
+      <div className="w-1/2 flex flex-col overflow-hidden">
+        <div className="flex-1 overflow-y-auto p-8">
+          <InvoiceHeader s={data} />
+
+          <div className="mb-6">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">
+              Proposed Journal Entry
+            </h3>
+            <PostingsTable postings={data.postings} />
+          </div>
+        </div>
+
+        <div className="border-t border-gray-100 p-6">
+          {mutation.error && (
+            <div className="mb-3 text-sm text-red-600">
+              {mutation.error instanceof Error ? mutation.error.message : 'Decision failed'}
+            </div>
+          )}
+          <DecisionPanel
+            suggestion={data}
+            onDecide={status => mutation.mutate(status)}
+            deciding={mutation.isPending}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
