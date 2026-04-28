@@ -1,11 +1,17 @@
 package com.sturdywaffle.infrastructure.persistence;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sturdywaffle.application.Persister;
+import com.sturdywaffle.domain.exception.NotFoundException;
+import com.sturdywaffle.domain.model.DecisionStatus;
 import com.sturdywaffle.domain.model.ExtractedInvoice;
+import com.sturdywaffle.domain.model.ModelRun;
 import com.sturdywaffle.domain.model.Posting;
 import com.sturdywaffle.domain.model.SuggestionId;
+import com.sturdywaffle.web.dto.DecisionResponse;
 import org.springframework.context.annotation.Profile;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +21,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Component
@@ -30,12 +37,24 @@ public class JdbcPersister implements Persister {
     }
 
     @Override
-    @Transactional
-    public SuggestionId persist(byte[] pdf, ExtractedInvoice extracted, List<Posting> postings,
-                                String extractorModel, String extractorPromptVersion, long extractionLatencyMs,
-                                String mapperModel, String mapperPromptVersion, long mappingLatencyMs) {
+    public StoredPdf storePdf(byte[] pdf) {
         UUID invoiceId = UUID.randomUUID();
-        String pdfPath = storePdf(pdf, invoiceId);
+        Path dir = Path.of("data/uploads");
+        try {
+            Files.createDirectories(dir);
+            Path file = dir.resolve(invoiceId + ".pdf");
+            Files.write(file, pdf);
+            return new StoredPdf(invoiceId, file.toString());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public SuggestionId persist(StoredPdf stored, ExtractedInvoice extracted, List<Posting> postings,
+                                ModelRun extraction, ModelRun mapping) {
+        UUID invoiceId = stored.invoiceId();
 
         jdbc.update("""
                 INSERT INTO invoices (id, supplier_name, invoice_number, invoice_date,
@@ -50,7 +69,7 @@ public class JdbcPersister implements Persister {
                 extracted.netTotal().value(),
                 extracted.vatTotal().value(),
                 extracted.grossTotal().value(),
-                pdfPath);
+                stored.pdfPath());
 
         UUID extractionId = UUID.randomUUID();
         jdbc.update("""
@@ -58,7 +77,7 @@ public class JdbcPersister implements Persister {
                 VALUES (?,?,?,?,?,?)
                 """,
                 extractionId, invoiceId, toJson(extracted),
-                extractorModel, extractorPromptVersion, extractionLatencyMs);
+                extraction.model(), extraction.promptVersion(), extraction.latencyMs());
 
         UUID suggestionId = UUID.randomUUID();
         jdbc.update("""
@@ -66,7 +85,7 @@ public class JdbcPersister implements Persister {
                 VALUES (?,?,?,?,?,?)
                 """,
                 suggestionId, invoiceId, extractionId,
-                mapperModel, mapperPromptVersion, mappingLatencyMs);
+                mapping.model(), mapping.promptVersion(), mapping.latencyMs());
 
         for (Posting p : postings) {
             jdbc.update("""
@@ -84,38 +103,52 @@ public class JdbcPersister implements Persister {
                     p.confidence());
         }
 
+        emitAudit("suggestion", suggestionId, "suggestion.created",
+                Map.of("invoiceId", invoiceId.toString(), "lineCount", postings.size()));
+
         return new SuggestionId(suggestionId);
     }
 
     @Override
     @Transactional
-    public void recordDecision(UUID suggestionId, String status, String note) {
-        jdbc.update("""
-                INSERT INTO decisions (suggestion_id, status, note)
-                VALUES (?,?,?)
-                ON CONFLICT (suggestion_id) DO UPDATE
-                    SET status = EXCLUDED.status, note = EXCLUDED.note, decided_at = NOW()
-                """,
-                suggestionId, status, note);
-    }
-
-    private String storePdf(byte[] pdf, UUID invoiceId) {
-        Path dir = Path.of("data/uploads");
+    public DecisionResponse recordDecision(SuggestionId suggestionId, DecisionStatus status, String note) {
+        DecisionResponse echo;
         try {
-            Files.createDirectories(dir);
-            Path file = dir.resolve(invoiceId + ".pdf");
-            Files.write(file, pdf);
-            return file.toString();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            echo = jdbc.queryForObject("""
+                    INSERT INTO decisions (suggestion_id, status, note)
+                    VALUES (?,?,?)
+                    ON CONFLICT (suggestion_id) DO UPDATE
+                        SET status = EXCLUDED.status, note = EXCLUDED.note, decided_at = NOW()
+                    RETURNING status, decided_at, note
+                    """,
+                    (rs, rowNum) -> new DecisionResponse(
+                            rs.getString("status"),
+                            rs.getTimestamp("decided_at").toInstant(),
+                            rs.getString("note")),
+                    suggestionId.value(), status.name(), note);
+        } catch (DataIntegrityViolationException e) {
+            throw new NotFoundException("suggestion not found: " + suggestionId.value());
         }
+
+        emitAudit("suggestion", suggestionId.value(), "decision." + status.name().toLowerCase(),
+                note != null ? Map.of("note", note) : Map.of());
+
+        return echo;
     }
 
-    private String toJson(ExtractedInvoice extracted) {
+    private void emitAudit(String entity, UUID entityId, String event, Map<String, Object> payload) {
+        jdbc.update("""
+                INSERT INTO audit_events (entity, entity_id, event, payload_json)
+                VALUES (?,?,?,?)
+                """,
+                entity, entityId, event, toJson(payload));
+    }
+
+    private String toJson(Object value) {
         try {
-            return objectMapper.writeValueAsString(extracted);
-        } catch (Exception e) {
-            return "{}";
+            return objectMapper.writeValueAsString(value);
+        } catch (JsonProcessingException e) {
+            throw new UncheckedIOException(e);
         }
     }
 }

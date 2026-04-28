@@ -7,6 +7,6 @@ import java.util.Optional;
 
 public interface Mapper {
     Optional<MappingProposal> map(String supplierName, InvoiceLine line);
-    default String modelId() { return "unknown"; }
-    default String promptVersion() { return "v1"; }
+    String modelId();
+    String promptVersion();
 }

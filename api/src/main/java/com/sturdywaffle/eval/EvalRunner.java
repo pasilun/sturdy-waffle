@@ -2,12 +2,21 @@ package com.sturdywaffle.eval;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sturdywaffle.application.EvalResult;
+import com.sturdywaffle.application.Persister;
 import com.sturdywaffle.application.PipelineService;
+import com.sturdywaffle.domain.model.DecisionStatus;
+import com.sturdywaffle.domain.model.ExtractedInvoice;
+import com.sturdywaffle.domain.model.ModelRun;
 import com.sturdywaffle.domain.model.Posting;
+import com.sturdywaffle.domain.model.SuggestionId;
+import com.sturdywaffle.web.dto.DecisionResponse;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
+
+import java.util.List;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -31,6 +40,25 @@ public class EvalRunner {
     public EvalRunner(PipelineService pipeline, ObjectMapper objectMapper) {
         this.pipeline = pipeline;
         this.objectMapper = objectMapper;
+    }
+
+    @Bean
+    Persister noopPersister() {
+        return new Persister() {
+            @Override
+            public StoredPdf storePdf(byte[] pdf) {
+                throw new UnsupportedOperationException("eval profile does not persist");
+            }
+            @Override
+            public SuggestionId persist(StoredPdf stored, ExtractedInvoice extracted, List<Posting> postings,
+                                        ModelRun extraction, ModelRun mapping) {
+                throw new UnsupportedOperationException("eval profile does not persist");
+            }
+            @Override
+            public DecisionResponse recordDecision(SuggestionId suggestionId, DecisionStatus status, String note) {
+                throw new UnsupportedOperationException("eval profile does not persist");
+            }
+        };
     }
 
     public static void main(String[] args) {

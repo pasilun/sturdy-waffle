@@ -2,9 +2,11 @@ package com.sturdywaffle.web;
 
 import com.sturdywaffle.application.Persister;
 import com.sturdywaffle.application.PipelineService;
+import com.sturdywaffle.domain.exception.NotFoundException;
 import com.sturdywaffle.domain.model.SuggestionId;
 import com.sturdywaffle.infrastructure.persistence.SuggestionQuery;
 import com.sturdywaffle.web.dto.DecisionRequest;
+import com.sturdywaffle.web.dto.DecisionResponse;
 import com.sturdywaffle.web.dto.SuggestionResponse;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
@@ -18,6 +20,8 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.UUID;
 
+// {id} path variables on this controller are suggestion ids (the value returned by upload),
+// not invoice ids. The /invoices route name matches the spec'd frontend URL (PLAN §4.6).
 @RestController
 @RequestMapping("/invoices")
 @Profile("!eval")
@@ -43,26 +47,24 @@ public class InvoiceController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SuggestionResponse> get(@PathVariable UUID id) {
+    public SuggestionResponse get(@PathVariable UUID id) {
         return suggestionQuery.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new NotFoundException("suggestion not found: " + id));
     }
 
     @GetMapping("/{id}/pdf")
     public ResponseEntity<byte[]> getPdf(@PathVariable UUID id) throws IOException {
-        var pdfPath = suggestionQuery.findPdfPath(id);
-        if (pdfPath.isEmpty()) return ResponseEntity.notFound().build();
-        byte[] bytes = Files.readAllBytes(Path.of(pdfPath.get()));
+        String pdfPath = suggestionQuery.findPdfPath(id)
+                .orElseThrow(() -> new NotFoundException("suggestion not found: " + id));
+        byte[] bytes = Files.readAllBytes(Path.of(pdfPath));
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(bytes);
     }
 
     @PostMapping("/{id}/decision")
-    public ResponseEntity<Void> decide(@PathVariable UUID id,
-                                       @RequestBody DecisionRequest body) {
-        persister.recordDecision(id, body.status(), body.note());
-        return ResponseEntity.ok().build();
+    public DecisionResponse decide(@PathVariable UUID id,
+                                   @RequestBody DecisionRequest body) {
+        return persister.recordDecision(new SuggestionId(id), body.status(), body.note());
     }
 }

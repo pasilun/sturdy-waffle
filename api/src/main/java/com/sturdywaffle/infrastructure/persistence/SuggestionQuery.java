@@ -1,5 +1,6 @@
 package com.sturdywaffle.infrastructure.persistence;
 
+import com.sturdywaffle.domain.model.Money;
 import com.sturdywaffle.web.dto.DecisionResponse;
 import com.sturdywaffle.web.dto.PostingResponse;
 import com.sturdywaffle.web.dto.SuggestionResponse;
@@ -7,6 +8,9 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +27,7 @@ public class SuggestionQuery {
     }
 
     public Optional<SuggestionResponse> findById(UUID suggestionId) {
+        List<PostingResponse> postings = fetchPostings(suggestionId);
         List<SuggestionResponse> rows = jdbc.query("""
                 SELECT s.id AS suggestion_id, i.id AS invoice_id,
                        i.supplier_name, i.invoice_number, i.invoice_date,
@@ -33,37 +38,20 @@ public class SuggestionQuery {
                 LEFT JOIN decisions d ON d.suggestion_id = s.id
                 WHERE s.id = ?
                 """,
-                (rs, rowNum) -> {
-                    Timestamp decidedAt = rs.getTimestamp("decided_at");
-                    DecisionResponse decision = rs.getString("decision_status") != null
-                            ? new DecisionResponse(
-                                    rs.getString("decision_status"),
-                                    decidedAt != null ? decidedAt.toInstant().toString() : null,
-                                    rs.getString("decision_note"))
-                            : null;
-                    return new SuggestionResponse(
-                            UUID.fromString(rs.getString("suggestion_id")),
-                            UUID.fromString(rs.getString("invoice_id")),
-                            rs.getString("supplier_name"),
-                            rs.getString("invoice_number"),
-                            rs.getDate("invoice_date") != null ? rs.getDate("invoice_date").toString() : null,
-                            rs.getString("currency"),
-                            rs.getBigDecimal("net") != null ? rs.getBigDecimal("net").toPlainString() : null,
-                            rs.getBigDecimal("vat") != null ? rs.getBigDecimal("vat").toPlainString() : null,
-                            rs.getBigDecimal("gross") != null ? rs.getBigDecimal("gross").toPlainString() : null,
-                            List.of(),
-                            decision);
-                },
+                (rs, rowNum) -> new SuggestionResponse(
+                        rs.getObject("suggestion_id", UUID.class),
+                        rs.getObject("invoice_id", UUID.class),
+                        rs.getString("supplier_name"),
+                        rs.getString("invoice_number"),
+                        rs.getObject("invoice_date", java.time.LocalDate.class),
+                        rs.getString("currency"),
+                        moneyStr(rs, "net"),
+                        moneyStr(rs, "vat"),
+                        moneyStr(rs, "gross"),
+                        postings,
+                        decisionFrom(rs)),
                 suggestionId);
-
-        if (rows.isEmpty()) return Optional.empty();
-
-        SuggestionResponse base = rows.get(0);
-        List<PostingResponse> postings = fetchPostings(suggestionId);
-        return Optional.of(new SuggestionResponse(
-                base.id(), base.invoiceId(), base.supplierName(), base.invoiceNumber(),
-                base.invoiceDate(), base.currency(), base.net(), base.vat(), base.gross(),
-                postings, base.decision()));
+        return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
     }
 
     public Optional<String> findPdfPath(UUID suggestionId) {
@@ -91,11 +79,26 @@ public class SuggestionQuery {
                         rs.getInt("line_index"),
                         rs.getString("account_code"),
                         rs.getString("account_name"),
-                        rs.getBigDecimal("debit") != null ? rs.getBigDecimal("debit").toPlainString() : null,
-                        rs.getBigDecimal("credit") != null ? rs.getBigDecimal("credit").toPlainString() : null,
+                        moneyStr(rs, "debit"),
+                        moneyStr(rs, "credit"),
                         rs.getString("description"),
                         rs.getString("reasoning"),
                         rs.getObject("confidence") != null ? rs.getDouble("confidence") : null),
                 suggestionId);
+    }
+
+    private static DecisionResponse decisionFrom(ResultSet rs) throws SQLException {
+        String status = rs.getString("decision_status");
+        if (status == null) return null;
+        Timestamp decidedAt = rs.getTimestamp("decided_at");
+        return new DecisionResponse(
+                status,
+                decidedAt != null ? decidedAt.toInstant() : null,
+                rs.getString("decision_note"));
+    }
+
+    private static String moneyStr(ResultSet rs, String col) throws SQLException {
+        BigDecimal bd = rs.getBigDecimal(col);
+        return bd != null ? Money.of(bd).toString() : null;
     }
 }

@@ -5,7 +5,6 @@ import com.sturdywaffle.domain.port.Extractor;
 import com.sturdywaffle.domain.port.Mapper;
 import com.sturdywaffle.domain.service.Assembler;
 import com.sturdywaffle.domain.service.Validator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,18 +14,31 @@ public class PipelineService {
 
     private final Extractor extractor;
     private final List<Mapper> mappers;
+    private final Persister persister;
     private final Validator validator = new Validator();
     private final Assembler assembler = new Assembler();
 
-    @Autowired(required = false)
-    private Persister persister;
-
-    public PipelineService(Extractor extractor, List<Mapper> mappers) {
+    public PipelineService(Extractor extractor, List<Mapper> mappers, Persister persister) {
         this.extractor = extractor;
         this.mappers = mappers;
+        this.persister = persister;
     }
 
     public SuggestionId run(byte[] pdf, String originalFilename) {
+        PipelineRun run = process(pdf);
+        Persister.StoredPdf stored = persister.storePdf(pdf);
+        Mapper primaryMapper = mappers.get(0);
+        return persister.persist(stored, run.extracted, run.postings,
+                new ModelRun(extractor.modelId(), extractor.promptVersion(), run.extractionLatencyMs),
+                new ModelRun(primaryMapper.modelId(), primaryMapper.promptVersion(), run.mappingLatencyMs));
+    }
+
+    public EvalResult evaluate(byte[] pdf) {
+        PipelineRun run = process(pdf);
+        return new EvalResult(run.extracted, run.postings, run.extractionLatencyMs + run.mappingLatencyMs);
+    }
+
+    private PipelineRun process(byte[] pdf) {
         long extractStart = System.currentTimeMillis();
         ExtractedInvoice extracted = extractor.extract(pdf);
         long extractionLatencyMs = System.currentTimeMillis() - extractStart;
@@ -34,33 +46,19 @@ public class PipelineService {
         validator.validate(extracted);
 
         long mapStart = System.currentTimeMillis();
-        List<MappingProposal> proposals = mapLines(extracted);
-        long mappingLatencyMs = System.currentTimeMillis() - mapStart;
-
-        List<Posting> postings = assembler.assemble(extracted, proposals);
-
-        Mapper primaryMapper = mappers.get(0);
-        return persister.persist(pdf, extracted, postings,
-                extractor.modelId(), extractor.promptVersion(), extractionLatencyMs,
-                primaryMapper.modelId(), primaryMapper.promptVersion(), mappingLatencyMs);
-    }
-
-    public EvalResult evaluate(byte[] pdf) {
-        long start = System.currentTimeMillis();
-        ExtractedInvoice extracted = extractor.extract(pdf);
-        validator.validate(extracted);
-        List<MappingProposal> proposals = mapLines(extracted);
-        List<Posting> postings = assembler.assemble(extracted, proposals);
-        return new EvalResult(extracted, postings, System.currentTimeMillis() - start);
-    }
-
-    private List<MappingProposal> mapLines(ExtractedInvoice extracted) {
-        return extracted.lines().stream()
+        List<MappingProposal> proposals = extracted.lines().stream()
                 .map(line -> mappers.stream()
                         .flatMap(m -> m.map(extracted.supplierName(), line).stream())
                         .findFirst()
                         .orElseThrow(() -> new IllegalStateException(
                                 "No mapper could handle line: " + line.description())))
                 .toList();
+        long mappingLatencyMs = System.currentTimeMillis() - mapStart;
+
+        List<Posting> postings = assembler.assemble(extracted, proposals);
+        return new PipelineRun(extracted, postings, extractionLatencyMs, mappingLatencyMs);
     }
+
+    private record PipelineRun(ExtractedInvoice extracted, List<Posting> postings,
+                                long extractionLatencyMs, long mappingLatencyMs) {}
 }

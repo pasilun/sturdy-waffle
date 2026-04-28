@@ -1,7 +1,9 @@
 package com.sturdywaffle.web.dto;
 
+import java.time.Instant;
+
 public record DecisionResponse(
         String status,
-        String decidedAt,
+        Instant decidedAt,
         String note
 ) {}

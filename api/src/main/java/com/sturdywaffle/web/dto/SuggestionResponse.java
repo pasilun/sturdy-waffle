@@ -1,5 +1,6 @@
 package com.sturdywaffle.web.dto;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -8,7 +9,7 @@ public record SuggestionResponse(
         UUID invoiceId,
         String supplierName,
         String invoiceNumber,
-        String invoiceDate,
+        LocalDate invoiceDate,
         String currency,
         String net,
         String vat,
