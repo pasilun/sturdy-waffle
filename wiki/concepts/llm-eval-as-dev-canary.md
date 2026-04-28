@@ -3,9 +3,9 @@ title: LLM eval harness as dev canary
 type: concept
 created: 2026-04-28
 updated: 2026-04-28
-tags: [llm, eval, testing, dev-loop, prompt-engineering]
+tags: [llm, eval, testing, dev-loop, prompt-engineering, model-selection]
 ---
-
+s
 # LLM eval harness as dev canary
 
 **An eval harness is not a unit test suite. It's a small, intentional regression check you run before and after risky changes to LLM-shaped code.**
@@ -32,6 +32,35 @@ A useful eval harness has a different shape from JUnit-style tests:
 | Refactored the pipeline | Pre-persistence logic still intact (eval skips DB) |
 | New "harder PDF" arrives (e.g. live-interview ask) | Drop into `fixtures/`, write expected JSON, rerun |
 | Suspect over-confidence | `lunch.pdf` confidence avg is the canary |
+
+## Tuning model choice per feature
+
+The strongest use of this harness is per-feature model selection — when a pipeline has multiple LLM calls (in [[invoice-to-journal]]: extraction + mapping), the harness can tell you which model is overkill where. Two reasons it's well-shaped for this:
+
+- **Each feature has a distinct success signal.** Extraction is mechanical — its pass/fail is the validator (`net + vat == gross`, line sum matches). Mapping is judgment — its pass/fail is the per-fixture accuracy ratio (e.g. `lunch.pdf 1/1`). Different features get measured differently in the same run.
+- **The boundary fixture surfaces calibration drift first.** A cheaper model often still gets the easy fixtures right but starts overclaiming on the close calls. `lunch.pdf` (staff meals 7731 vs entertainment) is the canary: if accuracy holds *and* confidence stays calibrated (not 0.95 on a wrong answer), the cheaper model is viable. Overconfidence on a wrong mapping is worse than under-confidence — it misleads the accountant's "do I need to look closely" cue.
+
+Suggested experiment matrix (one constant change + `./gradlew :api:eval` per cell):
+
+| | Extractor | Mapper | What to watch |
+|---|---|---|---|
+| Status quo | sonnet-4-6 | haiku-4-5 | baseline |
+| Cheap extract | **haiku-4-5** | haiku-4-5 | does validator still pass? big cost win if yes |
+| Smart map | sonnet-4-6 | **sonnet-4-6** | does `lunch.pdf` accuracy hold and confidence stay calibrated? |
+| Bottom | haiku-4-5 | haiku-4-5 | the floor |
+| Top | opus-4-7 | sonnet-4-6 | the ceiling — useful as a prep target for a harder live PDF |
+
+### Caveats specific to model selection
+
+1. **Three fixtures is statistically thin.** A model that's slightly worse may still happen to pass all three. Eval gives "definitely worse" signal, not "definitely good enough." Add fixtures (foreign-currency, multi-line restaurant receipt, sloppy scan) before trusting a cheaper model in front of a real user.
+2. **Non-determinism.** Same fixture + same model can produce different confidences and occasionally different account picks across runs. To reduce noise: run each cell ≥3 times and look at spread, or set `temperature: 0` in `MessageCreateParams` for deterministic outputs.
+3. **Hardcoded model constants.** Today the model lives as `private static final String MODEL` in each `Extractor` / `Mapper` impl — every swap is an edit + recompile. Lifting to `application.yml` (`anthropic.extractor.model`, `anthropic.mapper.model`) makes the matrix runnable from a config or env var instead, which is the prerequisite for scripting a real sweep.
+
+### Beyond fixtures: production becomes a second observational study
+
+With Phase 3 persistence in place, every `extractions` and `suggestions` row carries `model` and `prompt_version` — recorded via the `Extractor.modelId()` / `Mapper.modelId()` / `promptVersion()` port methods so the pipeline never leaks provider details. That means the eval harness stops being the only source of "which model worked when" — the database accumulates real-world cases and accountant decisions over time. Eval gives you fast pre-ship signal across a tiny matrix; production gives you slow long-tail signal across the messy real distribution. They cover different gaps and you want both.
+
+This also opens **dynamic model escalation** as a near-term option: if a Mapper returns confidence < threshold, escalate to a stronger model and retry. The eval harness is where you'd find the right threshold first — what does `lunch.pdf` confidence look like at Haiku vs Sonnet? — before turning it on in production. And once it's on, the persisted `model` column lets you measure how often escalation fires, which is the feedback loop that tells you whether your threshold is right.
 
 ## What it does *not* do
 

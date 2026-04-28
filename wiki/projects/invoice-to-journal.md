@@ -71,3 +71,5 @@ If a live ask doesn't fit any row, that's a design gap — flag, don't wing it.
 - [[embedded-postgres-clean-data-gotcha]] — `setCleanDataDirectory(false)` is required; without it the library reinitializes the cluster on every boot.
 - we prob want visibility on tokens spent 
 - maybe we should dig deeper into actually being able to switch to openAI
+- could we have the system or model learn when accountant make changes?
+- could we have dynamic model escalation if confidence is too low?
