@@ -16,6 +16,7 @@ The catalog of everything in this wiki. The LLM updates this on every ingest. Pa
 - [[llm-no-arithmetic]] — Principle: LLMs handle judgment (mapping, classification); deterministic code handles arithmetic (balancing, validation).
 - [[bigdecimal-scale-equality]] — Java gotcha: `BigDecimal.equals` is scale-sensitive (`1.20 ≠ 1.2`); canonicalize on parse, then `.equals` is safe.
 - [[llm-provider-portability]] — Anthropic↔OpenAI: prompts and JSON schemas port cheaply; multimodal inputs (PDFs, images) are the expensive asymmetry. Defense: project-shaped interfaces.
+- [[embedded-postgres-clean-data-gotcha]] — `io.zonky.test:embedded-postgres` reinitializes the cluster on every boot by default; `setCleanDataDirectory(false)` required for state to persist.
 
 ## Decisions
 

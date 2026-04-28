@@ -1,0 +1,27 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: sturdy-waffle-api
+  main:
+    banner-mode: off
+  flyway:
+    enabled: true
+  sql:
+    init:
+      platform: postgresql
+  jackson:
+    default-property-inclusion: non_null
+
+llm:
+  provider: anthropic
+
+anthropic:
+  api-key: ${ANTHROPIC_API_KEY:}
+
+logging:
+  level:
+    root: INFO
+    com.sturdywaffle: DEBUG
+    org.flywaydb: INFO

@@ -1,1 +1,21 @@
 .DS_Store
+
+# Durable runtime data — preserved across restarts, not committed
+data/pg/
+data/uploads/
+
+# Build outputs
+api/build/
+api/.gradle/
+web/node_modules/
+web/dist/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Environment
+.env
+.env.*
+

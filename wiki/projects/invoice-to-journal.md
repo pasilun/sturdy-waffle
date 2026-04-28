@@ -4,7 +4,7 @@ type: project
 status: active
 project_path: ../..
 created: 2026-04-27
-updated: 2026-04-27
+updated: 2026-04-28
 tags: [interview, llm, accounting, java, react, postgres]
 ---
 
@@ -14,7 +14,16 @@ Take-home interview project. A web app where an accountant uploads a PDF invoice
 
 ## Status
 
-Spec and plan are written ([[spec-invoice-to-journal]], [[plan-invoice-to-journal]]). Implementation has not started in this directory yet — `~/src/` currently contains only the planning artifacts and the original brief in `interview 2/`.
+**Phase 1 complete (2026-04-28).** Bootable shell with durable storage. See [build order](../sources/plan-invoice-to-journal.md) §12.
+
+| Phase | Description | Status |
+|---|---|---|
+| 1 — Foundation | Repo skeleton, embedded Postgres, Flyway, chart seed, pipeline stub | ✅ done |
+| 2 — Pipeline core | Money record, extractor, validator, mapper, assembler, eval harness | ⬜ next |
+| 3 — Persistence + API | Transactional persist, GET /invoices/:id, decision endpoint | ⬜ |
+| 4 — Frontend + polish | Upload page, review page, README, smoke test | ⬜ |
+
+Phase 1 exit check passed: `./dev.sh` boots cleanly (Java 21 auto-detected), Flyway shows 1 migration applied on first boot and "up to date" on restarts, `/health` returns 200, data survives restart.
 
 ## Why this exists
 
@@ -22,7 +31,7 @@ Live interview test of how the candidate uses AI tools to build a real product. 
 
 ## Architecture (one paragraph)
 
-Spring Boot 3 + Java 21 backend, Vite + React + TypeScript frontend, Postgres 16 in Docker via Spring Data JDBC + Flyway. Single Spring `@Service` runs the inline pipeline: store PDF → call configured `Extractor` (Anthropic in v1, with PDF document block + tool-use) → validate `net + vat == gross` strictly → map each line via mapper chain (LLM-only in v1, supplier-rule shortcut later) → assemble balanced postings → persist in one transaction. Two LLM calls only (extract, map); see [[two-llm-calls-not-one]]. Both calls sit behind project-shaped interfaces — see [[extractor-as-provider-seam]]. Arithmetic is always code, never LLM — see [[llm-no-arithmetic]].
+Spring Boot 3.5 + Java 21 backend, Vite + React + TypeScript frontend, `io.zonky.test:embedded-postgres` (real Postgres 14 process, in-process, data at `api/data/pg/`) + Spring Data JDBC + Flyway. Single Spring `@Service` runs the inline pipeline: store PDF → call configured `Extractor` (Anthropic in v1, with PDF document block + tool-use) → validate `net + vat == gross` strictly → map each line via mapper chain (LLM-only in v1, supplier-rule shortcut later) → assemble balanced postings → persist in one transaction. Two LLM calls only (extract, map); see [[two-llm-calls-not-one]]. Both calls sit behind project-shaped interfaces — see [[extractor-as-provider-seam]]. Arithmetic is always code, never LLM — see [[llm-no-arithmetic]].
 
 ## Key design decisions
 
@@ -55,5 +64,7 @@ If a live ask doesn't fit any row, that's a design gap — flag, don't wing it.
 
 ## Open questions / things to track
 
-- Implementation hasn't started in `~/src/` — there's no `web/` or `api/` directory yet.
+- Phase 2: need to confirm exact Maven coordinates + version for `com.anthropic:anthropic-java` SDK before wiring the extractor.
+- Phase 2: prompt iteration will be the highest-variance step — latency, structured-output schema tuning, fixture green rates.
 - An Anthropic API key is stored at `~/src/interview 2/anthropic_api_key.txt` (out-of-band credential — do not read or commit).
+- [[embedded-postgres-clean-data-gotcha]] — `setCleanDataDirectory(false)` is required; without it the library reinitializes the cluster on every boot.
