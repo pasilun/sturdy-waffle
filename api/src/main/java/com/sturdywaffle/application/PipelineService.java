@@ -25,7 +25,6 @@ public class PipelineService {
 
     public SuggestionId run(byte[] pdf, String originalFilename) {
         process(pdf);
-        // Phase 3: persist to DB; for now return a stable placeholder
         return new SuggestionId(UUID.randomUUID());
     }
 

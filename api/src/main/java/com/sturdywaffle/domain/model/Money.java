@@ -5,12 +5,16 @@ import java.math.RoundingMode;
 
 public record Money(BigDecimal value) {
 
+    public Money {
+        value = value.setScale(2, RoundingMode.UNNECESSARY);
+    }
+
     public static Money of(String s) {
-        return new Money(new BigDecimal(s).setScale(2, RoundingMode.UNNECESSARY));
+        return new Money(new BigDecimal(s));
     }
 
     public static Money of(BigDecimal bd) {
-        return new Money(bd.setScale(2, RoundingMode.UNNECESSARY));
+        return new Money(bd);
     }
 
     public Money add(Money other) {

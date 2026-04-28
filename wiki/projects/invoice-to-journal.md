@@ -4,7 +4,7 @@ type: project
 status: active
 project_path: ../..
 created: 2026-04-27
-updated: 2026-04-29
+updated: 2026-04-28
 tags: [interview, llm, accounting, java, react, postgres]
 ---
 
@@ -14,7 +14,7 @@ Take-home interview project. A web app where an accountant uploads a PDF invoice
 
 ## Status
 
-**Phase 2 complete (2026-04-29).** Full LLM pipeline live; `sample.pdf` passes eval end-to-end. See [build order](../sources/plan-invoice-to-journal.md) §12.
+**Phase 2 complete + cleanup pass (2026-04-28).** Full LLM pipeline live; `sample.pdf` passes eval and a live `POST /invoices` round-trip in ~10s. Pre-Phase-3 `/simplify` review applied 10 cleanups; see log entry of the same date. See [build order](../sources/plan-invoice-to-journal.md) §12.
 
 | Phase | Description | Status |
 |---|---|---|
@@ -24,6 +24,8 @@ Take-home interview project. A web app where an accountant uploads a PDF invoice
 | 4 — Frontend + polish | Upload page, review page, README, smoke test | ⬜ |
 
 Phase 2 exit check passed: `./gradlew eval` → `3 passed, 0 failed`. lunch 1/1 @ 0.95 conf, rent 1/1 @ 0.99 conf, sample 3/3 @ 0.95 conf. All within 15s latency budget.
+
+Known plan deviations (worth tracking before Phase 3): (a) `AnthropicMapper` runs on `claude-haiku-4-5` not `claude-sonnet-4-6` as [[plan-invoice-to-journal]] §2 commits to — sensible cost/latency choice, plan should be updated. (b) Per-line mapper calls are sequential; for an N-line invoice that's ~N × ~1s on top of extract. Parallelizing is the largest latency win still on the table, but needs a "warm cache then fan out" pattern (first call serial so calls 2..N hit the ephemeral chart-prompt cache). (c) Hardcoded model names live in `AnthropicExtractor`/`AnthropicMapper` source — fine for now but worth lifting to `application.yml` if A/B'ing during the live interview matters.
 
 ## Why this exists
 

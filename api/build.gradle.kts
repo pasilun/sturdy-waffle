@@ -40,6 +40,10 @@ tasks.register<JavaExec>("eval") {
 	}
 }
 
+springBoot {
+	mainClass = "com.sturdywaffle.ApiApplication"
+}
+
 tasks.withType<Test> {
 	useJUnitPlatform()
 }

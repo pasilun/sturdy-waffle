@@ -4,7 +4,6 @@ import com.anthropic.client.AnthropicClient;
 import com.anthropic.core.JsonValue;
 import com.anthropic.models.messages.*;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sturdywaffle.domain.exception.ExtractionException;
 import com.sturdywaffle.domain.model.ExtractedInvoice;
 import com.sturdywaffle.domain.model.InvoiceLine;
@@ -25,7 +24,6 @@ public class AnthropicExtractor implements Extractor {
     private static final String TOOL_NAME = "extract_invoice";
 
     private final AnthropicClient client;
-    private final ObjectMapper mapper = new ObjectMapper();
     private final Tool extractTool;
 
     public AnthropicExtractor(AnthropicClient client) {
@@ -65,8 +63,7 @@ public class AnthropicExtractor implements Extractor {
                 .orElseThrow(() -> new ExtractionException("Model did not call " + TOOL_NAME));
 
         try {
-            JsonNode root = mapper.valueToTree(toolUse._input());
-            return parse(root);
+            return parse(toolUse._input().convert(JsonNode.class));
         } catch (Exception e) {
             throw new ExtractionException("Failed to parse extraction result", e);
         }

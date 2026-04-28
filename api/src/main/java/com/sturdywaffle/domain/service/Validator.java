@@ -8,20 +8,22 @@ import java.math.BigDecimal;
 
 public class Validator {
 
-    public void validate(ExtractedInvoice e) {
-        BigDecimal lineSum = e.lines().stream()
-                .map(l -> l.net().value())
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    private static final Money ZERO = Money.of(BigDecimal.ZERO);
 
-        if (lineSum.compareTo(e.netTotal().value()) != 0) {
+    public void validate(ExtractedInvoice e) {
+        Money lineSum = e.lines().stream()
+                .map(l -> l.net())
+                .reduce(ZERO, Money::add);
+
+        if (!lineSum.equals(e.netTotal())) {
             throw new ValidationException(
-                    "Line net sum " + lineSum + " != netTotal " + e.netTotal().value());
+                    "Line net sum " + lineSum + " != netTotal " + e.netTotal());
         }
 
-        BigDecimal expectedGross = e.netTotal().value().add(e.vatTotal().value());
-        if (expectedGross.compareTo(e.grossTotal().value()) != 0) {
+        Money expectedGross = e.netTotal().add(e.vatTotal());
+        if (!expectedGross.equals(e.grossTotal())) {
             throw new ValidationException(
-                    "netTotal + vatTotal " + expectedGross + " != grossTotal " + e.grossTotal().value());
+                    "netTotal + vatTotal " + expectedGross + " != grossTotal " + e.grossTotal());
         }
     }
 }

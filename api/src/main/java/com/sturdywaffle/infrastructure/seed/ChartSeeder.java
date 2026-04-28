@@ -4,8 +4,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
@@ -26,7 +27,7 @@ public class ChartSeeder implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        try (InputStream is = getClass().getResourceAsStream("/seed/chart.json")) {
+        try (InputStream is = new ClassPathResource("seed/chart.json").getInputStream()) {
             List<Map<String, String>> accounts = objectMapper.readValue(is, new TypeReference<>() {});
             for (Map<String, String> account : accounts) {
                 jdbcTemplate.update(

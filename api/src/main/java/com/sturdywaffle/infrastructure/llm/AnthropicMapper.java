@@ -4,7 +4,6 @@ import com.anthropic.client.AnthropicClient;
 import com.anthropic.core.JsonValue;
 import com.anthropic.models.messages.*;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sturdywaffle.domain.exception.ExtractionException;
 import com.sturdywaffle.domain.model.InvoiceLine;
 import com.sturdywaffle.domain.model.MappingProposal;
@@ -13,7 +12,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -25,7 +24,6 @@ public class AnthropicMapper implements Mapper {
     private static final String TOOL_NAME = "map_line";
 
     private final AnthropicClient client;
-    private final ObjectMapper mapper = new ObjectMapper();
     private final Tool mapTool;
     private final String chartSystemPrompt;
 
@@ -62,7 +60,7 @@ public class AnthropicMapper implements Mapper {
                 .findFirst()
                 .map(toolUse -> {
                     try {
-                        JsonNode root = mapper.valueToTree(toolUse._input());
+                        JsonNode root = toolUse._input().convert(JsonNode.class);
                         return new MappingProposal(
                                 root.path("accountCode").asText(),
                                 root.path("reasoning").asText(),
@@ -74,9 +72,9 @@ public class AnthropicMapper implements Mapper {
     }
 
     private String buildChartPrompt() throws IOException {
-        byte[] bytes = new ClassPathResource("seed/chart.json").getInputStream().readAllBytes();
+        String chart = new ClassPathResource("seed/chart.json").getContentAsString(StandardCharsets.UTF_8);
         return "You are a Swedish accounting assistant. Map invoice line items to BAS chart of accounts.\n\n" +
-                "Available accounts (JSON):\n" + new String(bytes) + "\n\n" +
+                "Available accounts (JSON):\n" + chart + "\n\n" +
                 "Always call map_line with the most appropriate account code, your reasoning, and confidence (0-1).";
     }
 

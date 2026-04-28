@@ -17,9 +17,6 @@ spring:
 llm:
   provider: anthropic
 
-anthropic:
-  api-key: ${ANTHROPIC_API_KEY:}
-
 logging:
   level:
     root: INFO

@@ -8,7 +8,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,7 +18,6 @@ import java.util.List;
 import java.util.OptionalDouble;
 
 @SpringBootApplication(scanBasePackages = "com.sturdywaffle")
-@Component
 @Profile("eval")
 public class EvalRunner {
 

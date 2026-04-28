@@ -3,6 +3,7 @@
 # Durable runtime data — preserved across restarts, not committed
 data/pg/
 data/uploads/
+api/data/
 
 # Build outputs
 api/build/
