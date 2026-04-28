@@ -33,6 +33,9 @@ public class AnthropicMapper implements Mapper {
         this.chartSystemPrompt = buildChartPrompt();
     }
 
+    @Override public String modelId() { return MODEL; }
+    @Override public String promptVersion() { return "map.v1"; }
+
     @Override
     public Optional<MappingProposal> map(String supplierName, InvoiceLine line) {
         String userMsg = "Supplier: " + supplierName + "\nLine description: " + line.description()

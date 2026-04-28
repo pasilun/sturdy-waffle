@@ -31,6 +31,9 @@ public class AnthropicExtractor implements Extractor {
         this.extractTool = buildTool();
     }
 
+    @Override public String modelId() { return MODEL; }
+    @Override public String promptVersion() { return "extract.v1"; }
+
     @Override
     public ExtractedInvoice extract(byte[] pdf) {
         String b64 = Base64.getEncoder().encodeToString(pdf);
