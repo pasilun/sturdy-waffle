@@ -18,6 +18,8 @@ The catalog of everything in this wiki. The LLM updates this on every ingest. Pa
 - [[llm-provider-portability]] — Anthropic↔OpenAI: prompts and JSON schemas port cheaply; multimodal inputs (PDFs, images) are the expensive asymmetry. Defense: project-shaped interfaces.
 - [[embedded-postgres-clean-data-gotcha]] — `io.zonky.test:embedded-postgres` reinitializes the cluster on every boot by default; `setCleanDataDirectory(false)` required for state to persist.
 - [[llm-eval-as-dev-canary]] — Eval harness is a regression canary on prompt/model changes, not a unit test suite. Same code path as production, fixtures with expected outputs, boundary cases for calibration drift.
+- [[side-effects-in-transactional-methods]] — File IO / network calls inside `@Transactional` widen the tx and create dual-write inconsistencies. Split into a non-transactional method + a transactional one on the same bean.
+- [[interface-default-as-silent-lie]] — `default String modelId() { return "unknown"; }` is a silent lie waiting to happen. Force compiler-enforced overrides for any value that lands in an audit log or DB column.
 
 ## Decisions
 
