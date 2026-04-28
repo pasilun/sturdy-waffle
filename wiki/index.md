@@ -17,6 +17,7 @@ The catalog of everything in this wiki. The LLM updates this on every ingest. Pa
 - [[bigdecimal-scale-equality]] — Java gotcha: `BigDecimal.equals` is scale-sensitive (`1.20 ≠ 1.2`); canonicalize on parse with `Money.of()`, then `.equals` is safe.
 - [[llm-provider-portability]] — Anthropic↔OpenAI: prompts and JSON schemas port cheaply; multimodal inputs (PDFs, images) are the expensive asymmetry. Defense: project-shaped interfaces.
 - [[embedded-postgres-clean-data-gotcha]] — `io.zonky.test:embedded-postgres` reinitializes the cluster on every boot by default; `setCleanDataDirectory(false)` required for state to persist.
+- [[llm-eval-as-dev-canary]] — Eval harness is a regression canary on prompt/model changes, not a unit test suite. Same code path as production, fixtures with expected outputs, boundary cases for calibration drift.
 
 ## Decisions
 
