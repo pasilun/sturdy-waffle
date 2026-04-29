@@ -1,6 +1,7 @@
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { fetchSuggestion, recordDecision, type SuggestionResponse, type PostingResponse, type DecisionResponse } from './api'
+import { fetchSuggestion, recordDecision, type SuggestionResponse, type PostingResponse, type DecisionResponse, type InvoiceStatus } from './api'
+import { StatusBadge } from './StatusBadge'
 
 function ConfidenceBar({ value }: { value: number | null }) {
   if (value === null) return null
@@ -92,9 +93,13 @@ function DecisionPanel({
 }
 
 function InvoiceHeader({ s }: { s: SuggestionResponse }) {
+  const status: InvoiceStatus = (s.decision?.status ?? 'PENDING') as InvoiceStatus
   return (
     <div className="mb-6">
-      <h2 className="text-lg font-semibold text-gray-800">{s.supplierName}</h2>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-lg font-semibold text-gray-800">{s.supplierName}</h2>
+        <StatusBadge status={status} />
+      </div>
       <div className="text-sm text-gray-500 mt-1">
         #{s.invoiceNumber} &middot; {s.invoiceDate}
       </div>
@@ -133,7 +138,7 @@ export function ReviewPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="h-full flex items-center justify-center">
         <div className="text-gray-500">Loading…</div>
       </div>
     )
@@ -141,7 +146,7 @@ export function ReviewPage() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="h-full flex items-center justify-center">
         <div className="text-red-600">
           {error instanceof Error ? error.message : 'Failed to load suggestion'}
         </div>
@@ -150,7 +155,7 @@ export function ReviewPage() {
   }
 
   return (
-    <div className="flex h-screen bg-white">
+    <div className="flex h-full bg-white">
       {/* Left: PDF viewer */}
       <div className="w-1/2 border-r border-gray-200">
         <iframe

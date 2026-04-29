@@ -38,10 +38,10 @@ export function UploadPage() {
   )
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
+    <div className="flex items-center justify-center min-h-full p-8">
       <div className="w-full max-w-md">
-        <h1 className="text-2xl font-semibold text-gray-800 mb-8 text-center">
-          Invoice Review
+        <h1 className="text-xl font-semibold text-gray-800 mb-6 text-center">
+          Upload invoice
         </h1>
 
         <label
