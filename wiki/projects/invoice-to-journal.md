@@ -14,15 +14,15 @@ Take-home interview project. A web app where an accountant uploads a PDF invoice
 
 ## Status
 
-**Phase 4 complete (2026-04-28).** Full app live: upload → pipeline → review → approve/decline. README rewritten. `pnpm build` clean; `./gradlew test` 6/6. **Phase 5 planned (2026-04-29)** — multi-page app shell; see [[2026-04-29-phase-5-multi-page-shell-plan]].
+**Phase 5 complete (2026-04-29).** Multi-page app shell live: persistent sidebar, `/invoices` list with status filter tabs, `/accounts` chart of accounts, `/activity` audit feed. `./gradlew test` 8/8 (added 2 list-endpoint tests); tsc clean. Plan at [[2026-04-29-phase-5-multi-page-shell-plan]].
 
-| Phase                 | Description                                                         | Status     |
-| --------------------- | ------------------------------------------------------------------- | ---------- |
-| 1 — Foundation        | Repo skeleton, embedded Postgres, Flyway, chart seed, pipeline stub | ✅ done    |
-| 2 — Pipeline core     | Extractor, Validator, Mapper, Assembler, eval harness               | ✅ done    |
-| 3 — Persistence + API | Transactional persist, GET /invoices/:id, decision endpoint         | ✅ done    |
-| 4 — Frontend + polish | Upload page, review page, README                                    | ✅ done    |
-| 5 — Multi-page shell  | Sidebar nav, invoices list, accounts page, activity feed            | 📝 planned |
+| Phase                 | Description                                                         | Status  |
+| --------------------- | ------------------------------------------------------------------- | ------- |
+| 1 — Foundation        | Repo skeleton, embedded Postgres, Flyway, chart seed, pipeline stub | ✅ done |
+| 2 — Pipeline core     | Extractor, Validator, Mapper, Assembler, eval harness               | ✅ done |
+| 3 — Persistence + API | Transactional persist, GET /invoices/:id, decision endpoint         | ✅ done |
+| 4 — Frontend + polish | Upload page, review page, README                                    | ✅ done |
+| 5 — Multi-page shell  | Sidebar nav, invoices list, accounts page, activity feed            | ✅ done |
 
 Phase 3 exit check: `./gradlew test` → 6/6 passed; `./gradlew assemble` clean; manual cURL round-trip persisted invoice + suggestion + 5 postings + decision + 2 audit events.
 
@@ -30,7 +30,9 @@ Phase 3 shape (small additions on top of [[plan-invoice-to-journal]] §3, all in
 
 Known plan deviations (carry into Phase 4): (a) `AnthropicMapper` runs on `claude-haiku-4-5` not `claude-sonnet-4-6` as [[plan-invoice-to-journal]] §2 commits to — sensible cost/latency choice, plan should be updated. (b) Per-line mapper calls are sequential; for an N-line invoice that's ~N × ~1s on top of extract. Parallelizing is the largest latency win still on the table, but needs a "warm cache then fan out" pattern (first call serial so calls 2..N hit the ephemeral chart-prompt cache). (c) Hardcoded model names live in `AnthropicExtractor`/`AnthropicMapper` source — fine for now but worth lifting to `application.yml` if A/B'ing during the live interview matters. (d) `/invoices/{id}` is keyed by suggestion id, not invoice id; route name matches PLAN §4.6 frontend URL — controller has a one-line javadoc clarifying.
 
-Phase 5 shape: persistent left sidebar wraps every page including review (consistent app feel), `/` redirects to a new `/invoices` list view with status filter tabs, `/upload` becomes its own route, and two new read-only pages — `/accounts` (chart of accounts) and `/activity` (audit_events feed) — surface data the DB already holds. Three new GET endpoints, three new query classes, three new DTOs; no changes to write paths or pipeline. Full plan: [[2026-04-29-phase-5-multi-page-shell-plan]].
+Phase 5 shape: persistent left sidebar wraps every page including review (consistent app feel), `/` redirects to a new `/invoices` list view with status filter tabs, `/upload` becomes its own route, and two new read-only pages — `/accounts` (chart of accounts) and `/activity` (audit_events feed) — surface data the DB already holds. Three new GET endpoints, three new query classes, three new DTOs; no changes to write paths or pipeline. The `audit_events` table — written since Phase 3 but never read — finally got a query layer + frontend page, closing the "Audit log" row in [[plan-invoice-to-journal]] §11 live-extension table. Full plan: [[2026-04-29-phase-5-multi-page-shell-plan]].
+
+Phase 5 exit check: `./gradlew test` → 8/8 passed; tsc clean; live curls against `/invoices`, `/accounts`, `/activity` returned expected shapes; both servers reached on :8080 / :5173. One bug caught in flight (commit `a371a64`): the `WHERE (? IS NULL OR ...)` filter pattern fails on Postgres because the prepared-statement parameter type can't be inferred when both branches of the OR are conditional — split into two SQL strings (no-WHERE and equality) keyed on the null filter.
 
 ## Why this exists
 
@@ -83,5 +85,5 @@ If a live ask doesn't fit any row, that's a design gap — flag, don't wing it.
 - unit and integration tests - how to spec for usefulness?
 - security? 
 - naming of models?
-- playwright testing - exploratory to find bugs and improve
+- playwright testing - exploratory to find bugs and improve - so we can argue about frontend without screenshots
 - debug logs

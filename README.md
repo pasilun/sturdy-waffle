@@ -26,18 +26,24 @@ First boot also downloads the embedded Postgres binary (~30 MB, cached under `~/
 
 ## Using the app
 
-1. **Upload** — drag-drop (or click to select) a PDF invoice on the home page. The pipeline runs in ~15 s (two Claude calls: extract + map).
-2. **Review** — a split view shows the original PDF on the left and the proposed journal entry on the right. Each posting shows the account code, debit/credit amounts, a one-line reasoning, and a confidence bar (green ≥ 80 %, amber 50–80 %, red < 50 %).
+The app has a persistent left sidebar with four sections — **Invoices** (the home page), **Upload**, **Accounts**, **Activity**. The home page lists every processed invoice with a status filter (All / Pending / Approved / Declined); click a row to review.
+
+1. **Upload** — drag-drop (or click to select) a PDF invoice on the upload page. The pipeline runs in ~15 s (two Claude calls: extract + map). On success you land on the review page for the new suggestion.
+2. **Review** — a split view shows the original PDF on the left and the proposed journal entry on the right. Each posting shows the account code, debit/credit amounts, a one-line reasoning, and a confidence bar (green ≥ 80 %, amber 50–80 %, red < 50 %). The current decision state shows as a badge in the header.
 3. **Decide** — click **Approve** or **Decline**. The decision is persisted with an audit timestamp.
+4. **Browse** — return to **Invoices** to see the row with its new badge, or open **Activity** for a reverse-chrono feed of `suggestion.created` and `decision.approved|declined` events. **Accounts** is a read-only view of the BAS chart the mapper picks from.
 
 ## API
 
 | Endpoint | Description |
 |---|---|
 | `POST /invoices` (multipart `file`) | Runs full pipeline. Returns `{"id": "<uuid>"}`. |
+| `GET /invoices?status=all\|pending\|approved\|declined&limit=100` | List of processed invoices for the home page. |
 | `GET /invoices/:id` | Suggestion + postings + decision (if any). |
 | `GET /invoices/:id/pdf` | Raw PDF bytes (served to the in-browser iframe). |
 | `POST /invoices/:id/decision` | Body: `{"status": "APPROVED"\|"DECLINED", "note": null}`. Returns the persisted decision. |
+| `GET /accounts` | Chart of accounts (20 BAS rows). |
+| `GET /activity?limit=100` | Recent audit events (`suggestion.created`, `decision.approved`, `decision.declined`). |
 | `GET /health` | Returns `{"status": "UP"}`. |
 
 ## Running the eval harness
