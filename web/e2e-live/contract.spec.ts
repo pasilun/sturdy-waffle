@@ -71,9 +71,11 @@ test.describe('live API contract (read-only)', () => {
   test('accounts page renders 20+ rows against real backend', async ({ page }) => {
     await page.goto('/accounts')
     await expect(page.getByRole('heading', { name: 'Chart of accounts' })).toBeVisible()
-    // 20 data rows + 1 header row = at least 21
-    const rows = page.getByRole('row')
-    expect(await rows.count()).toBeGreaterThanOrEqual(21)
+    // Auto-wait for the TanStack query to populate the table — otherwise the
+    // count samples before /accounts resolves and we see 0 on a cold backend.
+    // 20 data rows + 1 header row = at least 21.
+    await expect.poll(() => page.getByRole('row').count(), { timeout: 5000 })
+        .toBeGreaterThanOrEqual(21)
   })
 
   test('activity page renders against real backend', async ({ page }) => {
