@@ -29,7 +29,7 @@ class AssemblerTest {
                 "1500.00", "375.00", "1875.00");
 
         List<Posting> postings = assembler.assemble(inv, List.of(
-                proposal("6550"), proposal("6560")));
+                proposal("6540"), proposal("6570")));
 
         assertEquals(4, postings.size(), "2 line postings + 1 VAT + 1 AP");
     }
@@ -120,10 +120,10 @@ class AssemblerTest {
         // Even when VAT is zero we still emit a 2640 posting (with debit
         // zero) — the Assembler keeps the row count predictable so
         // downstream code doesn't branch on VAT presence.
-        ExtractedInvoice inv = invoice(List.of(line("Books", "500.00")),
+        ExtractedInvoice inv = invoice(List.of(line("Software license", "500.00")),
                 "500.00", "0.00", "500.00");
 
-        List<Posting> postings = assembler.assemble(inv, List.of(proposal("6420")));
+        List<Posting> postings = assembler.assemble(inv, List.of(proposal("6570")));
 
         assertEquals(3, postings.size());
         Posting vat = postings.stream()
@@ -138,7 +138,7 @@ class AssemblerTest {
                 "1000.00", "250.00", "1250.00");
 
         List<Posting> postings = assembler.assemble(inv, List.of(
-                new MappingProposal("6540", "Consultancy work", 0.92)));
+                new MappingProposal("6530", "Consultancy work", 0.92)));
 
         Posting linePosting = postings.get(0);
         assertEquals("Consultancy work", linePosting.reasoning());

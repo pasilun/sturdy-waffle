@@ -50,7 +50,7 @@ export const fixtures = {
   ],
 
   accounts: Array.from({ length: 20 }, (_, i) => {
-    const code = String(1920 + i * 100).slice(0, 4)
+    const code = String(1930 + i * 100).slice(0, 4)
     return {
       code,
       name: `Account ${code}`,
@@ -96,12 +96,12 @@ export const fixtures = {
     postings: [
       {
         lineIndex: 0,
-        accountCode: '6110',
+        accountCode: '5610',
         accountName: 'Kontorsmaterial',
         debit: '680.00',
         credit: '0.00',
         description: 'Pens and notebooks',
-        reasoning: 'Office supplies are mapped to Kontorsmaterial.',
+        reasoning: 'Office supplies map to 5610 Kontorsmaterial.',
         confidence: 0.95,
       },
       {
@@ -195,7 +195,7 @@ export async function mockApi(
         ...base,
         postings: base.postings.map((p, i) =>
           i === 0
-            ? { ...p, accountCode: '6540', accountName: 'IT-tjänster', confidence: 0.97 }
+            ? { ...p, accountCode: '6530', accountName: 'IT-tjänster', confidence: 0.97 }
             : p,
         ),
       }

@@ -128,17 +128,17 @@ class JdbcPersisterIntegrationTest {
 
     @Test
     void replaceMappingSwapsPostingsAndUpdatesSuggestionsModel() {
-        SuggestionId id = persistFixture(line("Slack", "500.00"), "6540");
+        SuggestionId id = persistFixture(line("Slack", "500.00"), "6570");
 
-        // Sanity — the original mapping says 6540
+        // Sanity — the original mapping says 6570 (Programvara, licenser).
         String originalAccount = jdbc.queryForObject(
                 "SELECT account_code FROM postings WHERE suggestion_id = ? AND line_index = 0",
                 String.class, id.value());
-        assertEquals("6540", originalAccount);
+        assertEquals("6570", originalAccount);
 
         List<Posting> newPostings = List.of(
-                new Posting(0, "6560", Money.of("500.00"), null,
-                        "Slack", "Subscription software", 0.97),
+                new Posting(0, "6530", Money.of("500.00"), null,
+                        "Slack", "Re-classified as IT-tjänster", 0.97),
                 new Posting(-1, "2640", Money.of("125.00"), null, "Ingående moms", null, null),
                 new Posting(-1, "2440", null, Money.of("625.00"),
                         "Leverantörsskuld ACME AB", null, null));
@@ -149,7 +149,7 @@ class JdbcPersisterIntegrationTest {
         String newAccount = jdbc.queryForObject(
                 "SELECT account_code FROM postings WHERE suggestion_id = ? AND line_index = 0",
                 String.class, id.value());
-        assertEquals("6560", newAccount);
+        assertEquals("6530", newAccount);
 
         String suggestionsModel = jdbc.queryForObject(
                 "SELECT model FROM suggestions WHERE id = ?",
@@ -159,10 +159,10 @@ class JdbcPersisterIntegrationTest {
 
     @Test
     void replaceMappingEmitsAuditRowWithFromAndToModel() {
-        SuggestionId id = persistFixture(line("Slack", "500.00"), "6540");
+        SuggestionId id = persistFixture(line("Slack", "500.00"), "6570");
 
         persister.replaceMapping(id,
-                rebalancedPostings("6560", "500.00", "125.00", "625.00", "ACME AB"),
+                rebalancedPostings("6530", "500.00", "125.00", "625.00", "ACME AB"),
                 new ModelRun("claude-sonnet-4-6", "map.v1.escalation", 1234L));
 
         String payloadJson = jdbc.queryForObject("""
@@ -182,13 +182,13 @@ class JdbcPersisterIntegrationTest {
 
     @Test
     void replaceMappingThrowsConflictWhenAlreadyDecided() {
-        SuggestionId id = persistFixture(line("Slack", "500.00"), "6540");
+        SuggestionId id = persistFixture(line("Slack", "500.00"), "6570");
 
         persister.recordDecision(id, DecisionStatus.APPROVED, null);
 
         assertThrows(ConflictException.class,
                 () -> persister.replaceMapping(id,
-                        rebalancedPostings("6560", "500.00", "125.00", "625.00", "ACME AB"),
+                        rebalancedPostings("6530", "500.00", "125.00", "625.00", "ACME AB"),
                         new ModelRun("claude-sonnet-4-6", "map.v1.escalation", 1L)));
 
         // Postings should still be the originals — the conflict check
@@ -196,7 +196,7 @@ class JdbcPersisterIntegrationTest {
         String stillOriginal = jdbc.queryForObject(
                 "SELECT account_code FROM postings WHERE suggestion_id = ? AND line_index = 0",
                 String.class, id.value());
-        assertEquals("6540", stillOriginal);
+        assertEquals("6570", stillOriginal);
     }
 
     @Test
@@ -205,7 +205,7 @@ class JdbcPersisterIntegrationTest {
 
         assertThrows(NotFoundException.class,
                 () -> persister.replaceMapping(missing,
-                        rebalancedPostings("6560", "500.00", "125.00", "625.00", "ACME AB"),
+                        rebalancedPostings("6530", "500.00", "125.00", "625.00", "ACME AB"),
                         new ModelRun("claude-sonnet-4-6", "map.v1.escalation", 1L)));
     }
 
@@ -242,7 +242,7 @@ class JdbcPersisterIntegrationTest {
         // of the OR are conditional. Fix was to emit two distinct SQL strings.
         // This test pins that fix forever.
         persistFixture(line("Rent", "8000.00"), "5010");
-        persistFixture(line("Slack", "500.00"), "6540");
+        persistFixture(line("Slack", "500.00"), "6570");
 
         var rows = listQuery.list(null, 100);
 
@@ -252,7 +252,7 @@ class JdbcPersisterIntegrationTest {
     @Test
     void listWithApprovedStatusFilterRespectsDecision() {
         SuggestionId approved = persistFixture(line("Rent", "8000.00"), "5010");
-        persistFixture(line("Slack", "500.00"), "6540"); // pending
+        persistFixture(line("Slack", "500.00"), "6570"); // pending
 
         persister.recordDecision(approved, DecisionStatus.APPROVED, null);
 
@@ -264,7 +264,7 @@ class JdbcPersisterIntegrationTest {
     @Test
     void listWithPendingStatusFilterShowsUndecided() {
         SuggestionId approved = persistFixture(line("Rent", "8000.00"), "5010");
-        persistFixture(line("Slack", "500.00"), "6540");
+        persistFixture(line("Slack", "500.00"), "6570");
 
         persister.recordDecision(approved, DecisionStatus.APPROVED, null);
 

@@ -9,7 +9,7 @@ test('review page renders split view with PDF iframe and postings table', async 
   await expect(page.locator('iframe[title="Invoice PDF"]')).toBeVisible()
 
   // Postings table shows mapped account.
-  await expect(page.getByText('6110 — Kontorsmaterial')).toBeVisible()
+  await expect(page.getByText('5610 — Kontorsmaterial')).toBeVisible()
 })
 
 test('pending invoice shows Approve/Decline buttons; approved invoice shows decision', async ({ page }) => {
@@ -98,7 +98,7 @@ test('escalate mapping replaces postings with the escalation response', async ({
   await page.goto(`/invoices/${SUGGESTION_ID_PENDING}`)
 
   // Sanity: starts on Kontorsmaterial.
-  await expect(page.getByText('6110 — Kontorsmaterial')).toBeVisible()
+  await expect(page.getByText('5610 — Kontorsmaterial')).toBeVisible()
 
   const escalateRequest = page.waitForRequest(req =>
     req.url().includes('/escalate-mapping') && req.method() === 'POST',
@@ -107,8 +107,8 @@ test('escalate mapping replaces postings with the escalation response', async ({
   await escalateRequest
 
   // After the request resolves the postings table re-renders.
-  await expect(page.getByText('6540 — IT-tjänster')).toBeVisible()
-  await expect(page.getByText('6110 — Kontorsmaterial')).not.toBeVisible()
+  await expect(page.getByText('6530 — IT-tjänster')).toBeVisible()
+  await expect(page.getByText('5610 — Kontorsmaterial')).not.toBeVisible()
 })
 
 test('escalate button is hidden once a decision exists', async ({ page }) => {

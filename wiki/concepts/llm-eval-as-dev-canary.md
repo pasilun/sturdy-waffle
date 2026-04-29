@@ -21,7 +21,7 @@ A useful eval harness has a different shape from JUnit-style tests:
 
 **2. Fixtures pin expected behavior, not just shape.** Each fixture is `{name}.pdf` + `{name}.expected.json` with the expected output. Without expected values, the harness only catches crashes — not "the model now picks 6210 instead of 6230 for mobile telecoms after a prompt edit."
 
-**3. Boundary cases on purpose.** At least one fixture should sit on a category boundary the LLM is likely to flip on. In Invoice-to-Journal that's `lunch.pdf` (staff meals 7731 vs entertainment) — its job is to surface confidence-calibration drift, not to be easy to pass.
+**3. Boundary cases on purpose.** At least one fixture should sit on a category boundary the LLM is likely to flip on. In Invoice-to-Journal that's `lunch.pdf` (staff meals 7631 vs entertainment) — its job is to surface confidence-calibration drift, not to be easy to pass.
 
 ## What it buys you in the dev loop
 
@@ -38,7 +38,7 @@ A useful eval harness has a different shape from JUnit-style tests:
 The strongest use of this harness is per-feature model selection — when a pipeline has multiple LLM calls (in [[invoice-to-journal]]: extraction + mapping), the harness can tell you which model is overkill where. Two reasons it's well-shaped for this:
 
 - **Each feature has a distinct success signal.** Extraction is mechanical — its pass/fail is the validator (`net + vat == gross`, line sum matches). Mapping is judgment — its pass/fail is the per-fixture accuracy ratio (e.g. `lunch.pdf 1/1`). Different features get measured differently in the same run.
-- **The boundary fixture surfaces calibration drift first.** A cheaper model often still gets the easy fixtures right but starts overclaiming on the close calls. `lunch.pdf` (staff meals 7731 vs entertainment) is the canary: if accuracy holds *and* confidence stays calibrated (not 0.95 on a wrong answer), the cheaper model is viable. Overconfidence on a wrong mapping is worse than under-confidence — it misleads the accountant's "do I need to look closely" cue.
+- **The boundary fixture surfaces calibration drift first.** A cheaper model often still gets the easy fixtures right but starts overclaiming on the close calls. `lunch.pdf` (staff meals 7631 vs entertainment) is the canary: if accuracy holds *and* confidence stays calibrated (not 0.95 on a wrong answer), the cheaper model is viable. Overconfidence on a wrong mapping is worse than under-confidence — it misleads the accountant's "do I need to look closely" cue.
 
 Suggested experiment matrix (one constant change + `./gradlew :api:eval` per cell):
 

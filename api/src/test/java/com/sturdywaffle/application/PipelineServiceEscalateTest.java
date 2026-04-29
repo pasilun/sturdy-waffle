@@ -66,7 +66,7 @@ class PipelineServiceEscalateTest {
 
         when(persister.loadExtractedInvoice(id)).thenReturn(extracted);
         when(escalationMapper.map(eq("ACME AB"), any(InvoiceLine.class)))
-                .thenReturn(Optional.of(new MappingProposal("6550", "Hosting", 0.95)));
+                .thenReturn(Optional.of(new MappingProposal("6540", "Hosting", 0.95)));
 
         pipeline.escalate(id);
 
@@ -81,7 +81,7 @@ class PipelineServiceEscalateTest {
 
         when(persister.loadExtractedInvoice(id)).thenReturn(extracted);
         when(escalationMapper.map(any(), any()))
-                .thenReturn(Optional.of(new MappingProposal("6550", "Hosting", 0.95)));
+                .thenReturn(Optional.of(new MappingProposal("6540", "Hosting", 0.95)));
 
         AtomicReference<ModelRun> capturedRun = captureModelRun(id);
 
@@ -105,7 +105,7 @@ class PipelineServiceEscalateTest {
 
         when(persister.loadExtractedInvoice(id)).thenReturn(extracted);
         when(escalationMapper.map(any(), any()))
-                .thenReturn(Optional.of(new MappingProposal("6550", "Hosting", 0.95)));
+                .thenReturn(Optional.of(new MappingProposal("6540", "Hosting", 0.95)));
 
         AtomicReference<List<Posting>> capturedPostings = capturePostings(id);
 
@@ -114,7 +114,7 @@ class PipelineServiceEscalateTest {
         List<Posting> postings = capturedPostings.get();
         assertNotNull(postings);
         assertEquals(3, postings.size(), "1 line + 2 synthetic");
-        assertEquals("6550", postings.get(0).accountCode());
+        assertEquals("6540", postings.get(0).accountCode());
         assertTrue(postings.stream().anyMatch(p -> "2640".equals(p.accountCode())));
         assertTrue(postings.stream().anyMatch(p -> "2440".equals(p.accountCode())));
     }
@@ -139,7 +139,7 @@ class PipelineServiceEscalateTest {
         // Pinning whichever throws so a future "skip validation entirely"
         // refactor doesn't silently let bad data through.
         when(escalationMapper.map(any(), any()))
-                .thenReturn(Optional.of(new MappingProposal("6550", "Hosting", 0.95)));
+                .thenReturn(Optional.of(new MappingProposal("6540", "Hosting", 0.95)));
 
         assertThrows(RuntimeException.class, () -> pipeline.escalate(id));
         verify(persister, never()).replaceMapping(any(), any(), any());
@@ -164,7 +164,7 @@ class PipelineServiceEscalateTest {
 
         when(persister.loadExtractedInvoice(id)).thenReturn(extracted);
         when(escalationMapper.map(any(), any()))
-                .thenReturn(Optional.of(new MappingProposal("6550", "Hosting", 0.95)));
+                .thenReturn(Optional.of(new MappingProposal("6540", "Hosting", 0.95)));
 
         SuggestionId returned = pipeline.escalate(id);
         assertSame(id, returned, "escalate is in-place; the id is the same suggestion");

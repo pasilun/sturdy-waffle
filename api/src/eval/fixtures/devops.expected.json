@@ -3,11 +3,11 @@
   "vatTotal": "21615.00",
   "grossTotal": "108075.00",
   "lines": [
-    { "accountCode": "6550" },
-    { "accountCode": "6560" },
-    { "accountCode": "6570" },
     { "accountCode": "6540" },
-    { "accountCode": "5400" },
-    { "accountCode": "6560" }
+    { "accountCode": "6570" },
+    { "accountCode": "6230" },
+    { "accountCode": "6530" },
+    { "accountCode": "5410" },
+    { "accountCode": "6570" }
   ]
 }
