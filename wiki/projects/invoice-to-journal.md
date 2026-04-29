@@ -4,7 +4,7 @@ type: project
 status: active
 project_path: ../..
 created: 2026-04-27
-updated: 2026-04-28
+updated: 2026-04-29
 tags: [interview, llm, accounting, java, react, postgres, transactions]
 ---
 
@@ -14,20 +14,23 @@ Take-home interview project. A web app where an accountant uploads a PDF invoice
 
 ## Status
 
-**Phase 4 complete (2026-04-28).** Full app live: upload → pipeline → review → approve/decline. README rewritten. `pnpm build` clean; `./gradlew test` 6/6.
+**Phase 4 complete (2026-04-28).** Full app live: upload → pipeline → review → approve/decline. README rewritten. `pnpm build` clean; `./gradlew test` 6/6. **Phase 5 planned (2026-04-29)** — multi-page app shell; see [[2026-04-29-phase-5-multi-page-shell-plan]].
 
-| Phase                 | Description                                                         | Status |
-| --------------------- | ------------------------------------------------------------------- | ------ |
-| 1 — Foundation        | Repo skeleton, embedded Postgres, Flyway, chart seed, pipeline stub | ✅ done |
-| 2 — Pipeline core     | Extractor, Validator, Mapper, Assembler, eval harness               | ✅ done |
-| 3 — Persistence + API | Transactional persist, GET /invoices/:id, decision endpoint         | ✅ done |
-| 4 — Frontend + polish | Upload page, review page, README                                    | ✅ done |
+| Phase                 | Description                                                         | Status     |
+| --------------------- | ------------------------------------------------------------------- | ---------- |
+| 1 — Foundation        | Repo skeleton, embedded Postgres, Flyway, chart seed, pipeline stub | ✅ done    |
+| 2 — Pipeline core     | Extractor, Validator, Mapper, Assembler, eval harness               | ✅ done    |
+| 3 — Persistence + API | Transactional persist, GET /invoices/:id, decision endpoint         | ✅ done    |
+| 4 — Frontend + polish | Upload page, review page, README                                    | ✅ done    |
+| 5 — Multi-page shell  | Sidebar nav, invoices list, accounts page, activity feed            | 📝 planned |
 
 Phase 3 exit check: `./gradlew test` → 6/6 passed; `./gradlew assemble` clean; manual cURL round-trip persisted invoice + suggestion + 5 postings + decision + 2 audit events.
 
 Phase 3 shape (small additions on top of [[plan-invoice-to-journal]] §3, all inside the existing `Persister` seam): `Persister.StoredPdf` split out so file IO runs **before** the `@Transactional` boundary opens — see [[side-effects-in-transactional-methods]]. `ModelRun(model, promptVersion, latencyMs)` record collapses six loose strings/longs into two grouped params on `persist`. `DecisionStatus` enum replaces stringly-typed status (Jackson rejects unknowns → 400 via `HttpMessageNotReadableException`). `recordDecision` uses `INSERT … ON CONFLICT … RETURNING` and returns the persisted `DecisionResponse` so the frontend can confirm what was stored. `audit_events` rows emitted on `suggestion.created` and `decision.approved|declined` inside the same transaction as the row they describe. `Extractor`/`Mapper` ports lost their placeholder `default modelId()/promptVersion()` returns — see [[interface-default-as-silent-lie]]. `JdbcPersister.toJson` no longer swallows `JsonProcessingException` returning `"{}"` (was silently corrupting `extractions.raw_json`).
 
 Known plan deviations (carry into Phase 4): (a) `AnthropicMapper` runs on `claude-haiku-4-5` not `claude-sonnet-4-6` as [[plan-invoice-to-journal]] §2 commits to — sensible cost/latency choice, plan should be updated. (b) Per-line mapper calls are sequential; for an N-line invoice that's ~N × ~1s on top of extract. Parallelizing is the largest latency win still on the table, but needs a "warm cache then fan out" pattern (first call serial so calls 2..N hit the ephemeral chart-prompt cache). (c) Hardcoded model names live in `AnthropicExtractor`/`AnthropicMapper` source — fine for now but worth lifting to `application.yml` if A/B'ing during the live interview matters. (d) `/invoices/{id}` is keyed by suggestion id, not invoice id; route name matches PLAN §4.6 frontend URL — controller has a one-line javadoc clarifying.
+
+Phase 5 shape: persistent left sidebar wraps every page including review (consistent app feel), `/` redirects to a new `/invoices` list view with status filter tabs, `/upload` becomes its own route, and two new read-only pages — `/accounts` (chart of accounts) and `/activity` (audit_events feed) — surface data the DB already holds. Three new GET endpoints, three new query classes, three new DTOs; no changes to write paths or pipeline. Full plan: [[2026-04-29-phase-5-multi-page-shell-plan]].
 
 ## Why this exists
 

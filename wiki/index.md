@@ -31,7 +31,7 @@ The catalog of everything in this wiki. The LLM updates this on every ingest. Pa
 
 ## Sessions
 
-_(none yet — Claude Code session summaries land here)_
+- [[2026-04-29-phase-5-multi-page-shell-plan]] — Invoice-to-Journal Phase 5 plan: sidebar nav, invoices list, accounts page, activity feed.
 
 ## Sources
 
