@@ -32,6 +32,7 @@ The catalog of everything in this wiki. The LLM updates this on every ingest. Pa
 ## Sessions
 
 - [[2026-04-29-phase-5-multi-page-shell-plan]] — Invoice-to-Journal Phase 5 plan: sidebar nav, invoices list, accounts page, activity feed.
+- [[2026-04-29-phase-6-playwright-plan]] — Invoice-to-Journal Phase 6 plan: Playwright (mocked + live tiers), husky hooks, MCP browser driving.
 
 ## Sources
 
