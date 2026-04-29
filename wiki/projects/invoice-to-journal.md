@@ -39,6 +39,8 @@ Phase 6 shape: Playwright in `web/` for both regression coverage and LLM-driven 
 
 Phase 6 exit check: `pnpm e2e` → 20/20 passed in ~7 s; pre-commit hook verified by staging `web/` and observing the suite run before the commit landed; pre-push verified by running with `:8080` down (skips with warning) and up (runs `pnpm e2e:live`). One real bug caught and fixed in flight (commit `4b75bb2`): Vite's proxy was routing **document** navigations to `/invoices`, `/accounts`, `/activity` to the API, so refreshing on any sub-route returned raw JSON instead of `index.html`. Fix: `bypass` callback on each proxy entry that checks `Sec-Fetch-Dest: document` — fetch and iframe requests still proxy through, only top-level navigation falls back to Vite's static serving. Worth a concept page (vite-spa-proxy-bypass) if it bites another project.
 
+First MCP-driven UI review followed Phase 6 — workflow codified as [[mcp-browser-driven-ui-review]], findings in [[2026-04-29-first-mcp-browser-review]]. Spec compliance is full; one bug pending (NaN% on null-confidence postings — `=== null` misses `undefined`) plus six polish items.
+
 ## Why this exists
 
 Live interview test of how the candidate uses AI tools to build a real product. Grading is on product experience, not accounting perfection — see [[interview-brief]] for the original framing and [[spec-invoice-to-journal]] §8 for the explicit de-prioritizations.

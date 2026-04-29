@@ -13,6 +13,7 @@ The catalog of everything in this wiki. The LLM updates this on every ingest. Pa
 
 ## Concepts
 
+- [[mcp-browser-driven-ui-review]] — Methodology: autonomous workflow for using the Playwright MCP browser to drive the running app, compare to spec, and produce an ordered bugs/gaps/polish list. Phase-end checkpoint.
 - [[llm-no-arithmetic]] — Principle: LLMs handle judgment (mapping, classification); deterministic code handles arithmetic (balancing, validation).
 - [[bigdecimal-scale-equality]] — Java gotcha: `BigDecimal.equals` is scale-sensitive (`1.20 ≠ 1.2`); canonicalize on parse with `Money.of()`, then `.equals` is safe.
 - [[llm-provider-portability]] — Anthropic↔OpenAI: prompts and JSON schemas port cheaply; multimodal inputs (PDFs, images) are the expensive asymmetry. Defense: project-shaped interfaces.
@@ -33,6 +34,7 @@ The catalog of everything in this wiki. The LLM updates this on every ingest. Pa
 
 - [[2026-04-29-phase-5-multi-page-shell-plan]] — Invoice-to-Journal Phase 5 plan: sidebar nav, invoices list, accounts page, activity feed.
 - [[2026-04-29-phase-6-playwright-plan]] — Invoice-to-Journal Phase 6 plan: Playwright (mocked + live tiers), husky hooks, MCP browser driving.
+- [[2026-04-29-first-mcp-browser-review]] — First MCP browser-driven UI review of Invoice-to-Journal: 1 bug (NaN% on null confidence) + 6 polish items + spec compliance check.
 
 ## Sources
 
