@@ -21,6 +21,7 @@ The catalog of everything in this wiki. The LLM updates this on every ingest. Pa
 - [[llm-eval-as-dev-canary]] — Eval harness is a regression canary on prompt/model changes, not a unit test suite. Same code path as production, fixtures with expected outputs, boundary cases for calibration drift.
 - [[side-effects-in-transactional-methods]] — File IO / network calls inside `@Transactional` widen the tx and create dual-write inconsistencies. Split into a non-transactional method + a transactional one on the same bean.
 - [[interface-default-as-silent-lie]] — `default String modelId() { return "unknown"; }` is a silent lie waiting to happen. Force compiler-enforced overrides for any value that lands in an audit log or DB column.
+- [[tests-protect-invariants-not-implementation]] — Smart tests assert what the spec promises, not how the code happens to do it. The four-question filter for tests that earn rent vs. tests that rot.
 
 ## Decisions
 
