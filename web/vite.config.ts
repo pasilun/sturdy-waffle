@@ -7,6 +7,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/invoices': 'http://localhost:8080',
+      '/accounts': 'http://localhost:8080',
+      '/activity': 'http://localhost:8080',
       '/health':   'http://localhost:8080',
     },
   },

@@ -61,6 +61,19 @@ export async function fetchInvoices(status: 'all' | 'pending' | 'approved' | 'de
   return res.json()
 }
 
+export type AccountResponse = {
+  code: string
+  name: string
+  type: string
+  normalSide: 'DEBIT' | 'CREDIT'
+}
+
+export async function fetchAccounts(): Promise<AccountResponse[]> {
+  const res = await fetch('/accounts')
+  if (!res.ok) throw new Error(`Failed to load accounts (${res.status})`)
+  return res.json()
+}
+
 export async function fetchSuggestion(id: string): Promise<SuggestionResponse> {
   const res = await fetch(`/invoices/${id}`)
   if (!res.ok) throw new Error(`Not found (${res.status})`)
