@@ -4,8 +4,16 @@ Invoice-to-journal-entry assistant. Upload a PDF invoice; the app extracts line 
 
 ## Prerequisites
 
-- JDK 21 (`java -version` should show `21`)
-- Node 20+ with pnpm (`pnpm --version`)
+- JDK 21 (`java -version` should show `21`). Install via Homebrew: `brew install --cask temurin@21`.
+  On macOS the cask does **not** add `java` to your PATH automatically — add this to your shell profile and reload it:
+  ```bash
+  export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+  export PATH="$JAVA_HOME/bin:$PATH"
+  ```
+- Node 20+ with pnpm (`pnpm --version`). If pnpm is installed via corepack, ensure the corepack shims directory is on your PATH:
+  ```bash
+  corepack enable pnpm
+  ```
 - An Anthropic API key
 
 ## Running
