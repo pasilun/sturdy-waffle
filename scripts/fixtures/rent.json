@@ -1,0 +1,26 @@
+{
+  "supplier": {
+    "name": "Fastighetsbolaget Södermalm AB",
+    "address": ["Hornsgatan 42", "118 21 Stockholm"],
+    "org_nr": "556712-3344"
+  },
+  "buyer": {
+    "name": "Teknikbolaget Sverige AB",
+    "address": ["Kungsgatan 15", "111 43 Stockholm"]
+  },
+  "invoice_number": "FBS-2024-0318",
+  "invoice_date": "2024-03-01",
+  "due_date": "2024-03-31",
+  "currency": "SEK",
+  "vat_rate": 0.25,
+  "lines": [
+    {
+      "description": "Kontorshyra mars 2024, plan 3",
+      "qty": 1,
+      "unit": "mån",
+      "unit_price": 8000.00,
+      "account_code": "5010"
+    }
+  ],
+  "output": "rent.pdf"
+}

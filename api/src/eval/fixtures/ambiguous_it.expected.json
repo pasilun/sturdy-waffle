@@ -1,0 +1,19 @@
+{
+  "netTotal": "418990.00",
+  "vatTotal": "104747.50",
+  "grossTotal": "523737.50",
+  "lines": [
+    { "accountCode": "6530" },
+    { "accountCode": "6540" },
+    { "accountCode": "6570" },
+    { "accountCode": "6570" },
+    { "accountCode": "5410" },
+    { "accountCode": "6530" },
+    { "accountCode": "6230" },
+    { "accountCode": "6570" },
+    { "accountCode": "6530" },
+    { "accountCode": "6570" },
+    { "accountCode": "5460" },
+    { "accountCode": "5610" }
+  ]
+}

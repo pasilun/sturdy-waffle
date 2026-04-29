@@ -1,0 +1,89 @@
+{
+  "supplier": {
+    "name": "Scandinavian Business Services AB",
+    "address": ["Stureplan 4C", "114 35 Stockholm"],
+    "org_nr": "556620-4418"
+  },
+  "buyer": {
+    "name": "Teknikbolaget Sverige AB",
+    "address": ["Kungsgatan 15", "111 43 Stockholm"]
+  },
+  "invoice_number": "SBS-2024-Q1-0772",
+  "invoice_date": "2024-03-31",
+  "due_date": "2024-04-30",
+  "currency": "SEK",
+  "vat_rate": 0.25,
+  "lines": [
+    {
+      "description": "IT-säkerhetskonsult — penetrationstest och sårbarhetsbedömning, 80h",
+      "qty": 80,
+      "unit": "h",
+      "unit_price": 1250.00,
+      "account_code": "6530"
+    },
+    {
+      "description": "Microsoft Azure Enterprise, reserved instances 1 år (pro-rata mars)",
+      "qty": 1,
+      "unit": "mån",
+      "unit_price": 42000.00,
+      "account_code": "6540"
+    },
+    {
+      "description": "GitHub Enterprise Server, 50 platser, årsavgift",
+      "qty": 1,
+      "unit": "år",
+      "unit_price": 68000.00,
+      "account_code": "6570"
+    },
+    {
+      "description": "Datacom leased line 1 Gbit/s, Q1 2024",
+      "qty": 1,
+      "unit": "kvartal",
+      "unit_price": 18000.00,
+      "account_code": "6230"
+    },
+    {
+      "description": "Fortbildning — AWS Solutions Architect kurs, 3 deltagare",
+      "qty": 3,
+      "unit": "pers",
+      "unit_price": 12500.00,
+      "account_code": "6530"
+    },
+    {
+      "description": "Datadog APM & Logs, 12-månaders abonnemang",
+      "qty": 1,
+      "unit": "år",
+      "unit_price": 55000.00,
+      "account_code": "6540"
+    },
+    {
+      "description": "Företagsförsäkring, IT-ansvarsförsäkring, jan–mar 2024",
+      "qty": 1,
+      "unit": "kvartal",
+      "unit_price": 14200.00,
+      "account_code": "6310"
+    },
+    {
+      "description": "Kontorsmöbler — stolar och skrivbord, 6 arbetsplatser",
+      "qty": 6,
+      "unit": "st",
+      "unit_price": 4800.00,
+      "account_code": "5410"
+    },
+    {
+      "description": "Telefonväxel Cisco CUCM, underhållsavtal 2024",
+      "qty": 1,
+      "unit": "år",
+      "unit_price": 9500.00,
+      "account_code": "6211"
+    },
+    {
+      "description": "Hyra produktionslokal, april 2024",
+      "qty": 1,
+      "unit": "mån",
+      "unit_price": 22000.00,
+      "account_code": "5010"
+    }
+  ],
+  "output": "multiline_mixed.pdf"
+}

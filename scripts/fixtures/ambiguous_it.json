@@ -1,0 +1,103 @@
+{
+  "supplier": {
+    "name": "Nexus Digital Partners AB",
+    "address": ["Hamngatan 11", "411 10 Göteborg"],
+    "org_nr": "556934-7712"
+  },
+  "buyer": {
+    "name": "Teknikbolaget Sverige AB",
+    "address": ["Kungsgatan 15", "111 43 Stockholm"]
+  },
+  "invoice_number": "NDP-2024-0155",
+  "invoice_date": "2024-03-28",
+  "due_date": "2024-04-27",
+  "currency": "SEK",
+  "vat_rate": 0.25,
+  "lines": [
+    {
+      "description": "Systemutveckling — migrering till molnbaserad arkitektur, 160h",
+      "qty": 160,
+      "unit": "h",
+      "unit_price": 895.00,
+      "account_code": "6530"
+    },
+    {
+      "description": "Snowflake Data Cloud, compute credits + storage, mars 2024",
+      "qty": 1,
+      "unit": "mån",
+      "unit_price": 31400.00,
+      "account_code": "6540"
+    },
+    {
+      "description": "Tableau Server, 10 Creator-licenser, årsabonnemang",
+      "qty": 10,
+      "unit": "lic",
+      "unit_price": 6200.00,
+      "account_code": "6570"
+    },
+    {
+      "description": "Slack Business+, 120 platser, årsavgift",
+      "qty": 120,
+      "unit": "lic",
+      "unit_price": 210.00,
+      "account_code": "6570"
+    },
+    {
+      "description": "Nätverksinfrastruktur — Cisco Meraki MX-serie brandvägg, hårdvara",
+      "qty": 2,
+      "unit": "st",
+      "unit_price": 18500.00,
+      "account_code": "5410"
+    },
+    {
+      "description": "Nätverksinfrastruktur — installation och konfiguration",
+      "qty": 16,
+      "unit": "h",
+      "unit_price": 1100.00,
+      "account_code": "6530"
+    },
+    {
+      "description": "SD-WAN tjänst, 3 platser, kvartal Q1 2024",
+      "qty": 3,
+      "unit": "plats",
+      "unit_price": 4800.00,
+      "account_code": "6230"
+    },
+    {
+      "description": "Sophos Intercept X Advanced, 200 endpoints, 1 år",
+      "qty": 200,
+      "unit": "endpoint",
+      "unit_price": 185.00,
+      "account_code": "6570"
+    },
+    {
+      "description": "Återkommande IT-support avtal, L1/L2 helpdesk, mars 2024",
+      "qty": 1,
+      "unit": "mån",
+      "unit_price": 28000.00,
+      "account_code": "6530"
+    },
+    {
+      "description": "Programmeringsverktyg — JetBrains All Products, 8 lic, 1 år",
+      "qty": 8,
+      "unit": "lic",
+      "unit_price": 2200.00,
+      "account_code": "6570"
+    },
+    {
+      "description": "Förbrukningsmaterial serverhall — kylvätska, kablar, märkning",
+      "qty": 1,
+      "unit": "st",
+      "unit_price": 3750.00,
+      "account_code": "5460"
+    },
+    {
+      "description": "Kontorsförbrukning — papper, pennor, skrivartillbehör",
+      "qty": 1,
+      "unit": "st",
+      "unit_price": 1840.00,
+      "account_code": "5610"
+    }
+  ],
+  "output": "ambiguous_it.pdf"
+}

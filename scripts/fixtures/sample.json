@@ -1,0 +1,40 @@
+{
+  "supplier": {
+    "name": "Nordic IT Solutions AB",
+    "address": ["Birger Jarlsgatan 57", "113 56 Stockholm"],
+    "org_nr": "556891-2207"
+  },
+  "buyer": {
+    "name": "Teknikbolaget Sverige AB",
+    "address": ["Kungsgatan 15", "111 43 Stockholm"]
+  },
+  "invoice_number": "NITS-2024-0089",
+  "invoice_date": "2024-03-29",
+  "due_date": "2024-04-28",
+  "currency": "SEK",
+  "vat_rate": 0.25,
+  "lines": [
+    {
+      "description": "IT-konsulttjänster, senior backend-utvecklare, 200h",
+      "qty": 200,
+      "unit": "h",
+      "unit_price": 250.00,
+      "account_code": "6530"
+    },
+    {
+      "description": "IT-konsulttjänster, systemarkitekt, 120h",
+      "qty": 120,
+      "unit": "h",
+      "unit_price": 250.00,
+      "account_code": "6530"
+    },
+    {
+      "description": "Serverhosting och drift, mars 2024",
+      "qty": 1,
+      "unit": "mån",
+      "unit_price": 13500.00,
+      "account_code": "6540"
+    }
+  ],
+  "output": "sample.pdf"
+}

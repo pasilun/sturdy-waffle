@@ -1,0 +1,26 @@
+{
+  "supplier": {
+    "name": "Restaurang Vasastan HB",
+    "address": ["Odengatan 78", "113 22 Stockholm"],
+    "org_nr": "969712-8801"
+  },
+  "buyer": {
+    "name": "Teknikbolaget Sverige AB",
+    "address": ["Kungsgatan 15", "111 43 Stockholm"]
+  },
+  "invoice_number": "RV-2024-1142",
+  "invoice_date": "2024-03-14",
+  "due_date": "2024-04-13",
+  "currency": "SEK",
+  "vat_rate": 0.12,
+  "lines": [
+    {
+      "description": "Teamlunch 14 mars 2024, 4 pers",
+      "qty": 4,
+      "unit": "pers",
+      "unit_price": 120.00,
+      "account_code": "7631"
+    }
+  ],
+  "output": "lunch.pdf"
+}

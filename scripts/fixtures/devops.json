@@ -1,0 +1,61 @@
+{
+  "supplier": {
+    "name": "Cumulus Konsult AB",
+    "address": ["Sveavägen 98", "113 50 Stockholm"],
+    "org_nr": "556743-9901"
+  },
+  "buyer": {
+    "name": "Teknikbolaget Sverige AB",
+    "address": ["Kungsgatan 15", "111 43 Stockholm"]
+  },
+  "invoice_number": "CK-2024-0441",
+  "invoice_date": "2024-03-29",
+  "due_date": "2024-04-28",
+  "currency": "SEK",
+  "vat_rate": 0.25,
+  "lines": [
+    {
+      "description": "AWS cloud-infrastruktur, drift & hosting, mars 2024",
+      "qty": 1,
+      "unit": "mån",
+      "unit_price": 28000.00,
+      "account_code": "6540"
+    },
+    {
+      "description": "Pluralsight årsabonnemang, 5 licenser",
+      "qty": 5,
+      "unit": "lic",
+      "unit_price": 2592.00,
+      "account_code": "6570"
+    },
+    {
+      "description": "Telia fiber, fast datakommunikation Q1 2024",
+      "qty": 1,
+      "unit": "kvartal",
+      "unit_price": 4500.00,
+      "account_code": "6230"
+    },
+    {
+      "description": "DevOps-konsulttjänster, CI/CD-pipeline, 100h",
+      "qty": 100,
+      "unit": "h",
+      "unit_price": 310.00,
+      "account_code": "6530"
+    },
+    {
+      "description": "USB-C dockstationer, 4 st (Lenovo ThinkPad USB-C Dock)",
+      "qty": 4,
+      "unit": "st",
+      "unit_price": 1000.00,
+      "account_code": "5410"
+    },
+    {
+      "description": "JetBrains All Products Pack, årsabonnemang, 3 licenser",
+      "qty": 3,
+      "unit": "lic",
+      "unit_price": 2000.00,
+      "account_code": "6570"
+    }
+  ],
+  "output": "devops.pdf"
+}
