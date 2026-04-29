@@ -54,6 +54,25 @@ cd api && ./gradlew :api:eval
 
 Runs three PDF fixtures through the live pipeline (no DB) and prints a per-case table: extract pass/fail, map accuracy, average confidence, latency. Use this as a canary before editing prompts or swapping models.
 
+## Testing
+
+| Layer | Command | What it covers |
+|---|---|---|
+| Backend unit | `cd api && ./gradlew test` | `@WebMvcTest` controller tests with mocked queries. |
+| Frontend mocked e2e | `cd web && pnpm e2e` | 20 Playwright specs against a Vite-served React app with API responses stubbed via `page.route`. ~7 s, deterministic, no servers needed. |
+| Frontend live contract | `cd web && pnpm e2e:live` | Same shape as mocked but hits the real backend on `:8080` via the Vite proxy (read-only — no upload). Catches frontend↔backend contract drift. |
+| Frontend live full flow | `cd web && pnpm e2e:full` | Uploads `api/src/test/resources/sample.pdf`, waits ~15 s for the LLM pipeline, approves, asserts persistence. Burns Anthropic credits. |
+| Interactive | `cd web && pnpm e2e:ui` | Playwright's UI mode for authoring + debugging specs. |
+
+`pnpm install` at the project root sets up husky:
+
+- **pre-commit** runs the relevant layers based on what's staged: `pnpm e2e` + `tsc` if `web/**` changed, `./gradlew test` if `api/**` changed.
+- **pre-push** runs `pnpm e2e:live` if `:8080/health` answers, otherwise skips with a warning.
+
+Bypass in emergencies with `git commit --no-verify` / `git push --no-verify`.
+
+The first-time setup needs the Chromium binary: `cd web && pnpm exec playwright install chromium`.
+
 ## Quick cURL round-trip
 
 ```bash

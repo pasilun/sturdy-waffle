@@ -14,16 +14,16 @@ Take-home interview project. A web app where an accountant uploads a PDF invoice
 
 ## Status
 
-**Phase 5 complete (2026-04-29).** Multi-page app shell live: persistent sidebar, `/invoices` list with status filter tabs, `/accounts` chart of accounts, `/activity` audit feed. `./gradlew test` 8/8 (added 2 list-endpoint tests); tsc clean. Plan at [[2026-04-29-phase-5-multi-page-shell-plan]]. **Phase 6 planned (2026-04-29)** — Playwright + browser-driving MCP; see [[2026-04-29-phase-6-playwright-plan]].
+**Phase 6 complete (2026-04-29).** Playwright e2e on three tiers (mocked, live read-only, opt-in full); husky pre-commit + pre-push gates; Vite proxy SPA-bypass fix shipped as a side effect. `pnpm e2e` runs 20 specs in ~7 s. Plan at [[2026-04-29-phase-6-playwright-plan]].
 
-| Phase                 | Description                                                         | Status     |
-| --------------------- | ------------------------------------------------------------------- | ---------- |
-| 1 — Foundation        | Repo skeleton, embedded Postgres, Flyway, chart seed, pipeline stub | ✅ done    |
-| 2 — Pipeline core     | Extractor, Validator, Mapper, Assembler, eval harness               | ✅ done    |
-| 3 — Persistence + API | Transactional persist, GET /invoices/:id, decision endpoint         | ✅ done    |
-| 4 — Frontend + polish | Upload page, review page, README                                    | ✅ done    |
-| 5 — Multi-page shell  | Sidebar nav, invoices list, accounts page, activity feed            | ✅ done    |
-| 6 — Test infra        | Playwright (mocked + live tiers), husky hooks, MCP browser driving  | 📝 planned |
+| Phase                 | Description                                                         | Status  |
+| --------------------- | ------------------------------------------------------------------- | ------- |
+| 1 — Foundation        | Repo skeleton, embedded Postgres, Flyway, chart seed, pipeline stub | ✅ done |
+| 2 — Pipeline core     | Extractor, Validator, Mapper, Assembler, eval harness               | ✅ done |
+| 3 — Persistence + API | Transactional persist, GET /invoices/:id, decision endpoint         | ✅ done |
+| 4 — Frontend + polish | Upload page, review page, README                                    | ✅ done |
+| 5 — Multi-page shell  | Sidebar nav, invoices list, accounts page, activity feed            | ✅ done |
+| 6 — Test infra        | Playwright (mocked + live tiers), husky hooks, MCP browser driving  | ✅ done |
 
 Phase 3 exit check: `./gradlew test` → 6/6 passed; `./gradlew assemble` clean; manual cURL round-trip persisted invoice + suggestion + 5 postings + decision + 2 audit events.
 
@@ -36,6 +36,8 @@ Phase 5 shape: persistent left sidebar wraps every page including review (consis
 Phase 5 exit check: `./gradlew test` → 8/8 passed; tsc clean; live curls against `/invoices`, `/accounts`, `/activity` returned expected shapes; both servers reached on :8080 / :5173. One bug caught in flight (commit `a371a64`): the `WHERE (? IS NULL OR ...)` filter pattern fails on Postgres because the prepared-statement parameter type can't be inferred when both branches of the OR are conditional — split into two SQL strings (no-WHERE and equality) keyed on the null filter.
 
 Phase 6 shape: Playwright in `web/` for both regression coverage and LLM-driven browser exploration. Three tiers — `pnpm e2e` (mocked, fast, pre-commit gate), `pnpm e2e:live` (read-only against running dev.sh, pre-push gate), `pnpm e2e:full` (uploads sample.pdf, manual). Husky hooks at project root with a minimal root `package.json` for orchestration. Pre-push skips with warning if `:8080` unreachable rather than hard-failing (offline case). Playwright MCP server already installed by user — `mcp__playwright__browser_*` tools available, no further config. Live read-only tier is the layer that catches contract drift like the Phase 5 Postgres bug. Full plan: [[2026-04-29-phase-6-playwright-plan]].
+
+Phase 6 exit check: `pnpm e2e` → 20/20 passed in ~7 s; pre-commit hook verified by staging `web/` and observing the suite run before the commit landed; pre-push verified by running with `:8080` down (skips with warning) and up (runs `pnpm e2e:live`). One real bug caught and fixed in flight (commit `4b75bb2`): Vite's proxy was routing **document** navigations to `/invoices`, `/accounts`, `/activity` to the API, so refreshing on any sub-route returned raw JSON instead of `index.html`. Fix: `bypass` callback on each proxy entry that checks `Sec-Fetch-Dest: document` — fetch and iframe requests still proxy through, only top-level navigation falls back to Vite's static serving. Worth a concept page (vite-spa-proxy-bypass) if it bites another project.
 
 ## Why this exists
 
