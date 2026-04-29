@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { fetchSuggestion, recordDecision, type SuggestionResponse, type PostingResponse } from './api'
+import { fetchSuggestion, recordDecision, type SuggestionResponse, type PostingResponse, type DecisionResponse } from './api'
 
 function ConfidenceBar({ value }: { value: number | null }) {
   if (value === null) return null
@@ -27,8 +27,8 @@ function PostingsTable({ postings }: { postings: PostingResponse[] }) {
         </tr>
       </thead>
       <tbody>
-        {postings.map((p, i) => (
-          <tr key={i} className="border-b border-gray-50 last:border-0">
+        {postings.map((p) => (
+          <tr key={p.lineIndex} className="border-b border-gray-50 last:border-0">
             <td className="py-3 pr-3">
               <div className="font-medium text-gray-800">
                 {p.accountCode} — {p.accountName}
@@ -55,16 +55,14 @@ function PostingsTable({ postings }: { postings: PostingResponse[] }) {
 }
 
 function DecisionPanel({
-  suggestion,
+  decision,
   onDecide,
   deciding,
 }: {
-  suggestion: SuggestionResponse
+  decision: DecisionResponse | null
   onDecide: (status: 'APPROVED' | 'DECLINED') => void
   deciding: boolean
 }) {
-  const { decision } = suggestion
-
   if (decision) {
     const isApproved = decision.status === 'APPROVED'
     return (
@@ -80,20 +78,13 @@ function DecisionPanel({
     )
   }
 
+  const btn = 'flex-1 py-2.5 px-4 rounded-lg text-white font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
   return (
     <div className="flex gap-3">
-      <button
-        onClick={() => onDecide('APPROVED')}
-        disabled={deciding}
-        className="flex-1 py-2.5 px-4 rounded-lg bg-green-600 text-white font-medium text-sm hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-      >
+      <button onClick={() => onDecide('APPROVED')} disabled={deciding} className={`${btn} bg-green-600 hover:bg-green-700`}>
         Approve
       </button>
-      <button
-        onClick={() => onDecide('DECLINED')}
-        disabled={deciding}
-        className="flex-1 py-2.5 px-4 rounded-lg bg-red-600 text-white font-medium text-sm hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-      >
+      <button onClick={() => onDecide('DECLINED')} disabled={deciding} className={`${btn} bg-red-600 hover:bg-red-700`}>
         Decline
       </button>
     </div>
@@ -108,24 +99,12 @@ function InvoiceHeader({ s }: { s: SuggestionResponse }) {
         #{s.invoiceNumber} &middot; {s.invoiceDate}
       </div>
       <div className="flex gap-6 mt-3 text-sm">
-        <div>
-          <span className="text-gray-400">Net</span>
-          <div className="font-mono font-medium text-gray-700">
-            {s.net} {s.currency}
+        {([['Net', s.net], ['VAT', s.vat], ['Gross', s.gross]] as const).map(([label, value]) => (
+          <div key={label}>
+            <span className="text-gray-400">{label}</span>
+            <div className="font-mono font-medium text-gray-700">{value} {s.currency}</div>
           </div>
-        </div>
-        <div>
-          <span className="text-gray-400">VAT</span>
-          <div className="font-mono font-medium text-gray-700">
-            {s.vat} {s.currency}
-          </div>
-        </div>
-        <div>
-          <span className="text-gray-400">Gross</span>
-          <div className="font-mono font-medium text-gray-700">
-            {s.gross} {s.currency}
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   )
@@ -139,6 +118,7 @@ export function ReviewPage() {
     queryKey: ['suggestion', id],
     queryFn: () => fetchSuggestion(id!),
     enabled: !!id,
+    staleTime: Infinity,
   })
 
   const mutation = useMutation({
@@ -200,7 +180,7 @@ export function ReviewPage() {
             </div>
           )}
           <DecisionPanel
-            suggestion={data}
+            decision={data.decision}
             onDecide={status => mutation.mutate(status)}
             deciding={mutation.isPending}
           />

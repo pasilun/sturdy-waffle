@@ -16,12 +16,12 @@ Take-home interview project. A web app where an accountant uploads a PDF invoice
 
 **Phase 4 complete (2026-04-28).** Full app live: upload → pipeline → review → approve/decline. README rewritten. `pnpm build` clean; `./gradlew test` 6/6.
 
-| Phase | Description | Status |
-|---|---|---|
-| 1 — Foundation | Repo skeleton, embedded Postgres, Flyway, chart seed, pipeline stub | ✅ done |
-| 2 — Pipeline core | Extractor, Validator, Mapper, Assembler, eval harness | ✅ done |
-| 3 — Persistence + API | Transactional persist, GET /invoices/:id, decision endpoint | ✅ done |
-| 4 — Frontend + polish | Upload page, review page, README | ✅ done |
+| Phase                 | Description                                                         | Status |
+| --------------------- | ------------------------------------------------------------------- | ------ |
+| 1 — Foundation        | Repo skeleton, embedded Postgres, Flyway, chart seed, pipeline stub | ✅ done |
+| 2 — Pipeline core     | Extractor, Validator, Mapper, Assembler, eval harness               | ✅ done |
+| 3 — Persistence + API | Transactional persist, GET /invoices/:id, decision endpoint         | ✅ done |
+| 4 — Frontend + polish | Upload page, review page, README                                    | ✅ done |
 
 Phase 3 exit check: `./gradlew test` → 6/6 passed; `./gradlew assemble` clean; manual cURL round-trip persisted invoice + suggestion + 5 postings + decision + 2 audit events.
 

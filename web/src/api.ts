@@ -10,7 +10,7 @@ export type PostingResponse = {
 }
 
 export type DecisionResponse = {
-  status: string
+  status: 'APPROVED' | 'DECLINED'
   decidedAt: string
   note: string | null
 }
