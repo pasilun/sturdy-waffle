@@ -25,6 +25,8 @@ dependencies {
 	runtimeOnly("org.postgresql:postgresql")
 	implementation("io.zonky.test:embedded-postgres:2.0.7")
 	implementation("com.anthropic:anthropic-java:2.27.0")
+	implementation("com.openai:openai-java:4.33.0")
+	implementation("org.apache.pdfbox:pdfbox:3.0.7")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

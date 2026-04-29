@@ -3,13 +3,15 @@ package com.sturdywaffle.infrastructure.config;
 import com.anthropic.client.AnthropicClient;
 import com.sturdywaffle.infrastructure.llm.AnthropicMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 
 @Configuration
-public class MapperConfig {
+@ConditionalOnProperty(name = "llm.provider", havingValue = "anthropic", matchIfMissing = true)
+public class AnthropicMapperConfig {
 
     @Bean
     public AnthropicMapper primaryMapper(

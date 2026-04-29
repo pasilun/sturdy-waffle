@@ -90,10 +90,10 @@ If a live ask doesn't fit any row, that's a design gap — flag, don't wing it.
 
 ## Open questions / things to track
 
-- An Anthropic API key is at `~/Downloads/interview (1)/interview/anthropic_api_key.txt` (out-of-band — do not commit). `dev.sh` bootstraps `api/.env` from this file on first run.
+- **OpenAI migration complete** — Anthropic billing down; OpenAI now active (`gpt-4o` / `gpt-4o-mini`). `LLM_PROVIDER=anthropic ./dev.sh` switches back instantly. Decision: [[switch-provider-anthropic-to-openai]]. Eval: 6/6 fixtures pass, devops.pdf 5/6, avg confidence 0.91–0.92.
+- Both `ANTHROPIC_API_KEY` and `OPENAI_API_KEY` live in `api/.env`; active provider set by `llm.provider` in `application.yml`.
 - [[embedded-postgres-clean-data-gotcha]] — `setCleanDataDirectory(false)` is required; without it the library reinitializes the cluster on every boot.
-- we prob want visibility on tokens spent 
-- maybe we should dig deeper into actually being able to switch to openAI
+- we prob want visibility on tokens spent
 - could we have the system or model learn when accountant make changes?
 - could we have dynamic model escalation if confidence is too low?
 - can we do any verifications against external data to check for fraud?

@@ -19,7 +19,7 @@ spring:
       max-request-size: 10MB
 
 llm:
-  provider: anthropic
+  provider: openai   # set LLM_PROVIDER=anthropic to switch back when billing recovers
   anthropic:
     extractor:
       model: claude-sonnet-4-6
@@ -29,6 +29,16 @@ llm:
       max-tokens: 512
     escalation:
       model: claude-sonnet-4-6
+      max-tokens: 1024
+  openai:
+    extractor:
+      model: gpt-4o
+      max-tokens: 1024
+    mapper:
+      model: gpt-4o-mini
+      max-tokens: 512
+    escalation:
+      model: gpt-4o
       max-tokens: 1024
 
 logging:

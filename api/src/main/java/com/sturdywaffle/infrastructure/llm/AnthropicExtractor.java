@@ -12,6 +12,7 @@ import com.sturdywaffle.domain.port.Extractor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@ConditionalOnProperty(name = "llm.provider", havingValue = "anthropic", matchIfMissing = true)
 public class AnthropicExtractor implements Extractor {
 
     private static final Logger log = LoggerFactory.getLogger(AnthropicExtractor.class);

@@ -30,6 +30,7 @@ The catalog of everything in this wiki. The LLM updates this on every ingest. Pa
 - [[extractor-as-provider-seam]] — Invoice-to-Journal: pipeline depends on an `Extractor` interface, not the Anthropic SDK; symmetric with `Mapper`.
 - [[domain-layer-introduction]] — Invoice-to-Journal: four-layer package structure (`domain/`, `application/`, `infrastructure/`, `web/`); domain services testable without Spring.
 - [[sqlite-text-for-decimals]] — _superseded_ by [[postgres-numeric-for-decimals]]. Kept for the SQLite-specific rationale.
+- [[switch-provider-anthropic-to-openai]] — Invoice-to-Journal: swap Anthropic SDK for OpenAI SDK due to billing outage; PDFBox for PDF text extraction; gpt-4o / gpt-4o-mini model mapping.
 
 ## Sessions
 
@@ -37,6 +38,7 @@ The catalog of everything in this wiki. The LLM updates this on every ingest. Pa
 - [[2026-04-29-phase-6-playwright-plan]] — Invoice-to-Journal Phase 6 plan: Playwright (mocked + live tiers), husky hooks, MCP browser driving.
 - [[2026-04-29-first-mcp-browser-review]] — First MCP browser-driven UI review of Invoice-to-Journal: 1 bug (NaN% on null confidence) + 6 polish items + spec compliance check.
 - [[2026-04-29-mapping-escalation-plan]] — Invoice-to-Journal: design for "Escalate mapping" button — re-run mapping with stronger model, locked once approved, replace not version.
+- [[2026-04-29-openai-migration-plan]] — Invoice-to-Journal: step-by-step plan to swap Anthropic SDK for OpenAI SDK (billing outage trigger); 12 files, PDF via PDFBox text extraction.
 
 ## Sources
 

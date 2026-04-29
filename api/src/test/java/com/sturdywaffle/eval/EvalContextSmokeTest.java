@@ -20,9 +20,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
         webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @ActiveProfiles("eval")
 @TestPropertySource(properties = {
-        // AnthropicConfig requires the key to instantiate the client (no
-        // network call at boot). Real key not needed for context startup.
-        "ANTHROPIC_API_KEY=test-stub"
+        // Provider config classes require the relevant key at boot (no network call).
+        // Stub both so the test works regardless of which provider is active.
+        "ANTHROPIC_API_KEY=test-stub",
+        "OPENAI_API_KEY=test-stub"
 })
 class EvalContextSmokeTest {
 
