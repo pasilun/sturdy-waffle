@@ -15,6 +15,21 @@ export type DecisionResponse = {
   note: string | null
 }
 
+export type InvoiceStatus = 'PENDING' | 'APPROVED' | 'DECLINED'
+
+export type InvoiceListItem = {
+  suggestionId: string
+  invoiceId: string
+  supplierName: string | null
+  invoiceNumber: string | null
+  invoiceDate: string | null
+  currency: string
+  gross: string | null
+  status: InvoiceStatus
+  decidedAt: string | null
+  createdAt: string
+}
+
 export type SuggestionResponse = {
   id: string
   invoiceId: string
@@ -37,6 +52,12 @@ export async function uploadInvoice(file: File): Promise<{ id: string }> {
     const text = await res.text().catch(() => '')
     throw new Error(`Upload failed (${res.status})${text ? ': ' + text : ''}`)
   }
+  return res.json()
+}
+
+export async function fetchInvoices(status: 'all' | 'pending' | 'approved' | 'declined' = 'all'): Promise<InvoiceListItem[]> {
+  const res = await fetch(`/invoices?status=${status}`)
+  if (!res.ok) throw new Error(`Failed to load invoices (${res.status})`)
   return res.json()
 }
 
