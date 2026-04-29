@@ -8,8 +8,15 @@ api/data/
 # Build outputs
 api/build/
 api/.gradle/
+node_modules/
 web/node_modules/
 web/dist/
+
+# Playwright
+web/playwright-report/
+web/test-results/
+web/blob-report/
+web/.playwright/
 
 # IDE
 .idea/

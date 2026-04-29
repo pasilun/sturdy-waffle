@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+# Pre-push gate. Runs the live read-only contract suite against a running
+# dev.sh on :8080. Skips with a warning when the API isn't reachable so
+# offline pushes still go through.
+#
+# To run the slower full upload+approve flow, use `pnpm e2e:full` manually
+# before pushing — it's not gated here because it burns Anthropic credits.
+
+if ! curl -sf http://localhost:8080/health > /dev/null 2>&1; then
+  echo "⚠  API on :8080 not reachable — skipping live e2e (start ./dev.sh to enable)"
+  exit 0
+fi
+
+echo "→ running live e2e contract suite"
+(cd web && pnpm e2e:live)

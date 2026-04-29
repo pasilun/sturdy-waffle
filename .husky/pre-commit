@@ -1,0 +1,20 @@
+#!/usr/bin/env sh
+# Pre-commit gate. Runs whichever layer matches staged changes:
+#   - web/** → mocked e2e (~7s) + tsc
+#   - api/** → gradlew test
+# Bypass with `git commit --no-verify` (use sparingly).
+
+set -e
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+
+if echo "$staged" | grep -qE '^web/'; then
+  echo "→ web changes staged: running tsc + e2e (mocked)"
+  (cd web && ./node_modules/.bin/tsc --noEmit -p tsconfig.app.json)
+  (cd web && pnpm e2e)
+fi
+
+if echo "$staged" | grep -qE '^api/'; then
+  echo "→ api changes staged: running gradle test"
+  (cd api && ./gradlew test --quiet)
+fi
