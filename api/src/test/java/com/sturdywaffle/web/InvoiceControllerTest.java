@@ -6,8 +6,10 @@ import com.sturdywaffle.application.PipelineService;
 import com.sturdywaffle.domain.exception.NotFoundException;
 import com.sturdywaffle.domain.model.DecisionStatus;
 import com.sturdywaffle.domain.model.SuggestionId;
+import com.sturdywaffle.infrastructure.persistence.InvoiceListQuery;
 import com.sturdywaffle.infrastructure.persistence.SuggestionQuery;
 import com.sturdywaffle.web.dto.DecisionResponse;
+import com.sturdywaffle.web.dto.InvoiceListItem;
 import com.sturdywaffle.web.dto.SuggestionResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,7 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -40,6 +43,7 @@ class InvoiceControllerTest {
 
     @MockitoBean PipelineService pipelineService;
     @MockitoBean SuggestionQuery suggestionQuery;
+    @MockitoBean InvoiceListQuery invoiceListQuery;
     @MockitoBean Persister persister;
 
     @Test
@@ -115,6 +119,32 @@ class InvoiceControllerTest {
                                 """))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("not_found"));
+    }
+
+    @Test
+    void listMapsStatusAllToNullFilter() throws Exception {
+        UUID suggestionId = UUID.randomUUID();
+        Instant createdAt = Instant.parse("2026-04-29T08:00:00Z");
+        when(invoiceListQuery.list(isNull(), eq(100))).thenReturn(List.of(
+                new InvoiceListItem(suggestionId, UUID.randomUUID(), "ACME AB", "INV-1",
+                        LocalDate.of(2026, 4, 1), "SEK", "125.00", "PENDING", null, createdAt)));
+
+        mockMvc.perform(get("/invoices"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].suggestionId").value(suggestionId.toString()))
+                .andExpect(jsonPath("$[0].status").value("PENDING"));
+
+        verify(invoiceListQuery).list(null, 100);
+    }
+
+    @Test
+    void listMapsStatusApprovedToFilter() throws Exception {
+        when(invoiceListQuery.list(eq("APPROVED"), eq(100))).thenReturn(List.of());
+
+        mockMvc.perform(get("/invoices").param("status", "approved"))
+                .andExpect(status().isOk());
+
+        verify(invoiceListQuery).list("APPROVED", 100);
     }
 
     @Test

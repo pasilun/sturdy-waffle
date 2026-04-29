@@ -4,9 +4,11 @@ import com.sturdywaffle.application.Persister;
 import com.sturdywaffle.application.PipelineService;
 import com.sturdywaffle.domain.exception.NotFoundException;
 import com.sturdywaffle.domain.model.SuggestionId;
+import com.sturdywaffle.infrastructure.persistence.InvoiceListQuery;
 import com.sturdywaffle.infrastructure.persistence.SuggestionQuery;
 import com.sturdywaffle.web.dto.DecisionRequest;
 import com.sturdywaffle.web.dto.DecisionResponse;
+import com.sturdywaffle.web.dto.InvoiceListItem;
 import com.sturdywaffle.web.dto.SuggestionResponse;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
@@ -17,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -29,14 +32,29 @@ public class InvoiceController {
 
     private final PipelineService pipelineService;
     private final SuggestionQuery suggestionQuery;
+    private final InvoiceListQuery invoiceListQuery;
     private final Persister persister;
 
     public InvoiceController(PipelineService pipelineService,
                               SuggestionQuery suggestionQuery,
+                              InvoiceListQuery invoiceListQuery,
                               Persister persister) {
         this.pipelineService = pipelineService;
         this.suggestionQuery = suggestionQuery;
+        this.invoiceListQuery = invoiceListQuery;
         this.persister = persister;
+    }
+
+    @GetMapping
+    public List<InvoiceListItem> list(@RequestParam(defaultValue = "all") String status,
+                                      @RequestParam(defaultValue = "100") int limit) {
+        String filter = switch (status.toLowerCase()) {
+            case "pending" -> "PENDING";
+            case "approved" -> "APPROVED";
+            case "declined" -> "DECLINED";
+            default -> null;
+        };
+        return invoiceListQuery.list(filter, limit);
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
