@@ -9,7 +9,6 @@ import com.sturdywaffle.domain.model.InvoiceLine;
 import com.sturdywaffle.domain.model.MappingProposal;
 import com.sturdywaffle.domain.port.Mapper;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -17,24 +16,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@Component
 public class AnthropicMapper implements Mapper {
 
-    private static final String MODEL     = "claude-haiku-4-5";
     private static final String TOOL_NAME = "map_line";
 
     private final AnthropicClient client;
     private final Tool mapTool;
     private final String chartSystemPrompt;
+    private final String model;
+    private final int maxTokens;
+    private final String promptVersion;
 
-    public AnthropicMapper(AnthropicClient client) throws IOException {
+    public AnthropicMapper(AnthropicClient client, String model, int maxTokens, String promptVersion) throws IOException {
         this.client = client;
         this.mapTool = buildTool();
         this.chartSystemPrompt = buildChartPrompt();
+        this.model = model;
+        this.maxTokens = maxTokens;
+        this.promptVersion = promptVersion;
     }
 
-    @Override public String modelId() { return MODEL; }
-    @Override public String promptVersion() { return "map.v1"; }
+    @Override public String modelId() { return model; }
+    @Override public String promptVersion() { return promptVersion; }
 
     @Override
     public Optional<MappingProposal> map(String supplierName, InvoiceLine line) {
@@ -42,8 +45,8 @@ public class AnthropicMapper implements Mapper {
                 + "\nNet amount: " + line.net().value() + "\n\nMap this line to the correct BAS account.";
 
         MessageCreateParams params = MessageCreateParams.builder()
-                .model(MODEL)
-                .maxTokens(512)
+                .model(model)
+                .maxTokens(maxTokens)
                 .systemOfTextBlockParams(List.of(
                         TextBlockParam.builder()
                                 .text(chartSystemPrompt)

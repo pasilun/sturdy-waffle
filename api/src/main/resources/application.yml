@@ -20,6 +20,16 @@ spring:
 
 llm:
   provider: anthropic
+  anthropic:
+    extractor:
+      model: claude-sonnet-4-6
+      max-tokens: 1024
+    mapper:
+      model: claude-haiku-4-5
+      max-tokens: 512
+    escalation:
+      model: claude-sonnet-4-6
+      max-tokens: 1024
 
 logging:
   level:

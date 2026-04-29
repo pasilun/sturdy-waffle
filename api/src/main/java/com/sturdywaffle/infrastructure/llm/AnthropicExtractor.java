@@ -9,6 +9,7 @@ import com.sturdywaffle.domain.model.ExtractedInvoice;
 import com.sturdywaffle.domain.model.InvoiceLine;
 import com.sturdywaffle.domain.model.Money;
 import com.sturdywaffle.domain.port.Extractor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -20,18 +21,24 @@ import java.util.Map;
 @Component
 public class AnthropicExtractor implements Extractor {
 
-    private static final String MODEL = "claude-sonnet-4-6";
     private static final String TOOL_NAME = "extract_invoice";
 
     private final AnthropicClient client;
     private final Tool extractTool;
+    private final String model;
+    private final int maxTokens;
 
-    public AnthropicExtractor(AnthropicClient client) {
+    public AnthropicExtractor(
+            AnthropicClient client,
+            @Value("${llm.anthropic.extractor.model}") String model,
+            @Value("${llm.anthropic.extractor.max-tokens}") int maxTokens) {
         this.client = client;
         this.extractTool = buildTool();
+        this.model = model;
+        this.maxTokens = maxTokens;
     }
 
-    @Override public String modelId() { return MODEL; }
+    @Override public String modelId() { return model; }
     @Override public String promptVersion() { return "extract.v1"; }
 
     @Override
@@ -47,8 +54,8 @@ public class AnthropicExtractor implements Extractor {
                 TextBlockParam.builder().text("Extract all invoice fields using the extract_invoice tool.").build());
 
         MessageCreateParams params = MessageCreateParams.builder()
-                .model(MODEL)
-                .maxTokens(1024)
+                .model(model)
+                .maxTokens(maxTokens)
                 .system("You are an accounting assistant. Extract structured data from the invoice PDF provided. " +
                         "Always call extract_invoice — never respond with plain text.")
                 .addTool(ToolUnion.ofTool(extractTool))

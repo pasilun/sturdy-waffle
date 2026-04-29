@@ -3,6 +3,7 @@ package com.sturdywaffle.infrastructure.persistence;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sturdywaffle.application.Persister;
+import com.sturdywaffle.domain.exception.ConflictException;
 import com.sturdywaffle.domain.exception.NotFoundException;
 import com.sturdywaffle.domain.model.DecisionStatus;
 import com.sturdywaffle.domain.model.ExtractedInvoice;
@@ -134,6 +135,77 @@ public class JdbcPersister implements Persister {
                 note != null ? Map.of("note", note) : Map.of());
 
         return echo;
+    }
+
+    @Override
+    public ExtractedInvoice loadExtractedInvoice(SuggestionId suggestionId) {
+        List<String> rows = jdbc.query("""
+                SELECT e.raw_json
+                FROM suggestions s
+                JOIN extractions e ON e.id = s.extraction_id
+                WHERE s.id = ?
+                """,
+                (rs, rowNum) -> rs.getString("raw_json"),
+                suggestionId.value());
+        if (rows.isEmpty()) {
+            throw new NotFoundException("suggestion not found: " + suggestionId.value());
+        }
+        try {
+            return objectMapper.readValue(rows.get(0), ExtractedInvoice.class);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to parse stored extraction for " + suggestionId.value(), e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void replaceMapping(SuggestionId suggestionId, List<Posting> postings, ModelRun mapping) {
+        UUID id = suggestionId.value();
+
+        Integer suggestionExists = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM suggestions WHERE id = ?", Integer.class, id);
+        if (suggestionExists == null || suggestionExists == 0) {
+            throw new NotFoundException("suggestion not found: " + id);
+        }
+
+        Integer decided = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM decisions WHERE suggestion_id = ?", Integer.class, id);
+        if (decided != null && decided > 0) {
+            throw new ConflictException("suggestion already decided: " + id);
+        }
+
+        String previousModel = jdbc.queryForObject(
+                "SELECT model FROM suggestions WHERE id = ?", String.class, id);
+
+        jdbc.update("DELETE FROM postings WHERE suggestion_id = ?", id);
+
+        jdbc.update("""
+                UPDATE suggestions
+                SET model = ?, prompt_version = ?, latency_ms = ?
+                WHERE id = ?
+                """,
+                mapping.model(), mapping.promptVersion(), mapping.latencyMs(), id);
+
+        for (Posting p : postings) {
+            jdbc.update("""
+                    INSERT INTO postings (suggestion_id, line_index, account_code,
+                        debit, credit, description, reasoning, confidence)
+                    VALUES (?,?,?,?,?,?,?,?)
+                    """,
+                    id,
+                    p.lineIndex(),
+                    p.accountCode(),
+                    p.debit() != null ? p.debit().value() : null,
+                    p.credit() != null ? p.credit().value() : null,
+                    p.description(),
+                    p.reasoning(),
+                    p.confidence());
+        }
+
+        emitAudit("suggestion", id, "mapping.escalated",
+                Map.of("fromModel", previousModel,
+                        "toModel", mapping.model(),
+                        "lineCount", postings.size()));
     }
 
     private void emitAudit(String entity, UUID entityId, String event, Map<String, Object> payload) {

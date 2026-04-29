@@ -58,6 +58,14 @@ public class EvalRunner {
             public DecisionResponse recordDecision(SuggestionId suggestionId, DecisionStatus status, String note) {
                 throw new UnsupportedOperationException("eval profile does not persist");
             }
+            @Override
+            public ExtractedInvoice loadExtractedInvoice(SuggestionId suggestionId) {
+                throw new UnsupportedOperationException("eval profile does not persist");
+            }
+            @Override
+            public void replaceMapping(SuggestionId suggestionId, List<Posting> postings, ModelRun mapping) {
+                throw new UnsupportedOperationException("eval profile does not persist");
+            }
         };
     }
 

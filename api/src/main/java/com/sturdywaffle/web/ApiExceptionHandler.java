@@ -1,5 +1,6 @@
 package com.sturdywaffle.web;
 
+import com.sturdywaffle.domain.exception.ConflictException;
 import com.sturdywaffle.domain.exception.ExtractionException;
 import com.sturdywaffle.domain.exception.NotFoundException;
 import com.sturdywaffle.domain.exception.ValidationException;
@@ -30,6 +31,12 @@ public class ApiExceptionHandler {
     public ResponseEntity<Map<String, String>> handleNotFound(NotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("error", "not_found", "detail", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<Map<String, String>> handleConflict(ConflictException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("error", "conflict", "detail", ex.getMessage()));
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)

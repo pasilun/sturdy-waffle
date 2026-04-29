@@ -85,4 +85,11 @@ public class InvoiceController {
                                    @RequestBody DecisionRequest body) {
         return persister.recordDecision(new SuggestionId(id), body.status(), body.note());
     }
+
+    @PostMapping("/{id}/escalate-mapping")
+    public SuggestionResponse escalate(@PathVariable UUID id) {
+        pipelineService.escalate(new SuggestionId(id));
+        return suggestionQuery.findById(id)
+                .orElseThrow(() -> new NotFoundException("suggestion not found: " + id));
+    }
 }

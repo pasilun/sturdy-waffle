@@ -31,7 +31,8 @@ The app has a persistent left sidebar with four sections — **Invoices** (the h
 1. **Upload** — drag-drop (or click to select) a PDF invoice on the upload page. The pipeline runs in ~15 s (two Claude calls: extract + map). On success you land on the review page for the new suggestion.
 2. **Review** — a split view shows the original PDF on the left and the proposed journal entry on the right. Each posting shows the account code, debit/credit amounts, a one-line reasoning, and a confidence bar (green ≥ 80 %, amber 50–80 %, red < 50 %). The current decision state shows as a badge in the header.
 3. **Decide** — click **Approve** or **Decline**. The decision is persisted with an audit timestamp.
-4. **Browse** — return to **Invoices** to see the row with its new badge, or open **Activity** for a reverse-chrono feed of `suggestion.created` and `decision.approved|declined` events. **Accounts** is a read-only view of the BAS chart the mapper picks from.
+   - If you don't trust the proposed mapping, click **Escalate mapping** before deciding. This re-runs only the mapping step against a stronger model (configured under `llm.anthropic.escalation`); the postings update in place. The button is hidden once a decision is recorded; calling the endpoint on a decided suggestion returns 409.
+4. **Browse** — return to **Invoices** to see the row with its new badge, or open **Activity** for a reverse-chrono feed of `suggestion.created`, `decision.approved|declined`, and `mapping.escalated` events. **Accounts** is a read-only view of the BAS chart the mapper picks from.
 
 ## API
 
@@ -42,6 +43,7 @@ The app has a persistent left sidebar with four sections — **Invoices** (the h
 | `GET /invoices/:id` | Suggestion + postings + decision (if any). |
 | `GET /invoices/:id/pdf` | Raw PDF bytes (served to the in-browser iframe). |
 | `POST /invoices/:id/decision` | Body: `{"status": "APPROVED"\|"DECLINED", "note": null}`. Returns the persisted decision. |
+| `POST /invoices/:id/escalate-mapping` | Re-runs mapping against the escalation model and replaces postings. Returns the updated suggestion. 409 if a decision already exists. |
 | `GET /accounts` | Chart of accounts (20 BAS rows). |
 | `GET /activity?limit=100` | Recent audit events (`suggestion.created`, `decision.approved`, `decision.declined`). |
 | `GET /health` | Returns `{"status": "UP"}`. |

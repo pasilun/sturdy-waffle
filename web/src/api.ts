@@ -112,3 +112,12 @@ export async function recordDecision(
   if (!res.ok) throw new Error(`Decision failed (${res.status})`)
   return res.json()
 }
+
+export async function escalateMapping(id: string): Promise<SuggestionResponse> {
+  const res = await fetch(`/invoices/${id}/escalate-mapping`, { method: 'POST' })
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(`Escalate failed (${res.status})${text ? ': ' + text : ''}`)
+  }
+  return res.json()
+}

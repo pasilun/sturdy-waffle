@@ -35,6 +35,7 @@ The catalog of everything in this wiki. The LLM updates this on every ingest. Pa
 - [[2026-04-29-phase-5-multi-page-shell-plan]] — Invoice-to-Journal Phase 5 plan: sidebar nav, invoices list, accounts page, activity feed.
 - [[2026-04-29-phase-6-playwright-plan]] — Invoice-to-Journal Phase 6 plan: Playwright (mocked + live tiers), husky hooks, MCP browser driving.
 - [[2026-04-29-first-mcp-browser-review]] — First MCP browser-driven UI review of Invoice-to-Journal: 1 bug (NaN% on null confidence) + 6 polish items + spec compliance check.
+- [[2026-04-29-mapping-escalation-plan]] — Invoice-to-Journal: design for "Escalate mapping" button — re-run mapping with stronger model, locked once approved, replace not version.
 
 ## Sources
 

@@ -20,4 +20,8 @@ public interface Persister {
                          ModelRun extraction, ModelRun mapping);
 
     DecisionResponse recordDecision(SuggestionId suggestionId, DecisionStatus status, String note);
+
+    ExtractedInvoice loadExtractedInvoice(SuggestionId suggestionId);
+
+    void replaceMapping(SuggestionId suggestionId, List<Posting> postings, ModelRun mapping);
 }

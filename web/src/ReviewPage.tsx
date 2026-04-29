@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { fetchSuggestion, recordDecision, type SuggestionResponse, type PostingResponse, type DecisionResponse, type InvoiceStatus } from './api'
+import { fetchSuggestion, recordDecision, escalateMapping, type SuggestionResponse, type PostingResponse, type DecisionResponse, type InvoiceStatus } from './api'
 import { StatusBadge } from './StatusBadge'
 import { formatMoney } from './format'
 
@@ -139,6 +139,13 @@ export function ReviewPage() {
     },
   })
 
+  const escalation = useMutation({
+    mutationFn: () => escalateMapping(id!),
+    onSuccess: updated => {
+      queryClient.setQueryData(['suggestion', id], updated)
+    },
+  })
+
   if (isLoading) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -174,9 +181,21 @@ export function ReviewPage() {
           <InvoiceHeader s={data} />
 
           <div className="mb-6">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">
-              Proposed Journal Entry
-            </h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                Proposed Journal Entry
+              </h3>
+              {!data.decision && (
+                <button
+                  onClick={() => escalation.mutate()}
+                  disabled={escalation.isPending}
+                  title="Re-run mapping with a stronger model"
+                  className="text-xs px-2.5 py-1 rounded-md border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {escalation.isPending ? 'Escalating…' : 'Escalate mapping'}
+                </button>
+              )}
+            </div>
             <PostingsTable postings={data.postings} />
           </div>
         </div>
@@ -185,6 +204,11 @@ export function ReviewPage() {
           {mutation.error && (
             <div className="mb-3 text-sm text-red-600">
               {mutation.error instanceof Error ? mutation.error.message : 'Decision failed'}
+            </div>
+          )}
+          {escalation.error && (
+            <div className="mb-3 text-sm text-red-600">
+              {escalation.error instanceof Error ? escalation.error.message : 'Escalate failed'}
             </div>
           )}
           <DecisionPanel

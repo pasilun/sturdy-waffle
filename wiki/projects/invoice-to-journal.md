@@ -41,6 +41,8 @@ Phase 6 exit check: `pnpm e2e` → 20/20 passed in ~7 s; pre-commit hook verifie
 
 First MCP-driven UI review followed Phase 6 — workflow codified as [[mcp-browser-driven-ui-review]], findings in [[2026-04-29-first-mcp-browser-review]]. Spec compliance is full; one bug pending (NaN% on null-confidence postings — `=== null` misses `undefined`) plus six polish items.
 
+Post-Phase-6 work toward the live interview: model strings lifted to `application.yml` (`llm.anthropic.{extractor,mapper}.model`) so Sonnet↔Haiku is a config flip, not a recompile — the `modelId()` audit trail still records what actually ran. Next: "Escalate mapping" button — re-run mapping against a stronger model on accountant request. Locked once approved; replace not version. Plan: [[2026-04-29-mapping-escalation-plan]].
+
 ## Why this exists
 
 Live interview test of how the candidate uses AI tools to build a real product. Grading is on product experience, not accounting perfection — see [[interview-brief]] for the original framing and [[spec-invoice-to-journal]] §8 for the explicit de-prioritizations.
