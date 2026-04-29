@@ -41,7 +41,14 @@ Phase 6 exit check: `pnpm e2e` → 20/20 passed in ~7 s; pre-commit hook verifie
 
 First MCP-driven UI review followed Phase 6 — workflow codified as [[mcp-browser-driven-ui-review]], findings in [[2026-04-29-first-mcp-browser-review]]. Spec compliance is full; one bug pending (NaN% on null-confidence postings — `=== null` misses `undefined`) plus six polish items.
 
-Post-Phase-6 work toward the live interview: model strings lifted to `application.yml` (`llm.anthropic.{extractor,mapper}.model`) so Sonnet↔Haiku is a config flip, not a recompile — the `modelId()` audit trail still records what actually ran. Next: "Escalate mapping" button — re-run mapping against a stronger model on accountant request. Locked once approved; replace not version. Plan: [[2026-04-29-mapping-escalation-plan]].
+Post-Phase-6 work toward the live interview, all on `main`:
+
+- **Model strings → config** (`llm.anthropic.{extractor,mapper,escalation}.{model,max-tokens}` in `application.yml`). Sonnet↔Haiku is a config flip, not a recompile; `modelId()` still records what actually ran in `extractions` / `suggestions`.
+- **Escalate-mapping** — review-page button re-runs only the mapping step against a stronger configured model (Sonnet over Haiku primary). Locked once decided (409). Replace-not-version: postings deleted/re-inserted, `suggestions.model` updated, `audit_events.mapping.escalated` row preserves `{fromModel, toModel, lineCount}`. Plan: [[2026-04-29-mapping-escalation-plan]]. Closes the open-question list's "dynamic model escalation if confidence is too low" — the threshold trigger is one boolean check away.
+- **Hard fixture** `devops.pdf` — six-line IT consultancy invoice spreading across the four similar 65xx codes plus 5400. Haiku scores 5/6 with 0.88 avg confidence; eval harness can now empirically discriminate Sonnet from Haiku.
+- **Test suite** went from 6 → 47 java cases + 26 mocked Playwright + 6 live Playwright contract specs. Domain unit (Money/Validator/Assembler) + application-layer escalate test + persister integration against real embedded Postgres + frontend escalate spec. Concept page distilling the principle: [[tests-protect-invariants-not-implementation]] — four-question filter for whether a test will earn rent or rot.
+- **Logging** — every pipeline phase, every Anthropic call (with token usage), every exception. Frontend gets an `ErrorBoundary`, global error/rejection listeners, and TanStack v5 cache-level error logging. Addresses the "tokens spent" open-question and makes MCP-browser troubleshooting possible without screenshares.
+- **`EvalContextSmokeTest`** — closes the dev-process gap that let a Spring 3.5 circular-bean regression in `./gradlew eval` slip past `./gradlew test`.
 
 ## Why this exists
 
@@ -95,5 +102,9 @@ If a live ask doesn't fit any row, that's a design gap — flag, don't wing it.
 - security? 
 - naming of models?
 - playwright testing - exploratory to find bugs and improve - so we can argue about frontend without screenshots - this should also guard against drift from spec
--
 - debug logs
+
+general ideas:
+-user feedback should generate a new version directly and ask for feedback
+-longer running sessions
+-h
