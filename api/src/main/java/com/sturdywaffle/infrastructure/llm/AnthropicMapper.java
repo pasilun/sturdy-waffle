@@ -8,6 +8,8 @@ import com.sturdywaffle.domain.exception.ExtractionException;
 import com.sturdywaffle.domain.model.InvoiceLine;
 import com.sturdywaffle.domain.model.MappingProposal;
 import com.sturdywaffle.domain.port.Mapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
@@ -18,6 +20,7 @@ import java.util.Optional;
 
 public class AnthropicMapper implements Mapper {
 
+    private static final Logger log = LoggerFactory.getLogger(AnthropicMapper.class);
     private static final String TOOL_NAME = "map_line";
 
     private final AnthropicClient client;
@@ -57,7 +60,15 @@ public class AnthropicMapper implements Mapper {
                 .addUserMessage(userMsg)
                 .build();
 
+        long start = System.currentTimeMillis();
         Message response = client.messages().create(params);
+        long latencyMs = System.currentTimeMillis() - start;
+
+        Usage usage = response.usage();
+        log.info("anthropic.map model={} latencyMs={} inputTokens={} outputTokens={} cacheReadTokens={} line='{}'",
+                model, latencyMs, usage.inputTokens(), usage.outputTokens(),
+                usage.cacheReadInputTokens().orElse(0L),
+                truncate(line.description(), 60));
 
         return response.content().stream()
                 .filter(ContentBlock::isToolUse)
@@ -75,6 +86,11 @@ public class AnthropicMapper implements Mapper {
                         throw new ExtractionException("Failed to parse mapping result", e);
                     }
                 });
+    }
+
+    private static String truncate(String s, int max) {
+        if (s == null || s.length() <= max) return s;
+        return s.substring(0, max - 1) + "…";
     }
 
     private String buildChartPrompt() throws IOException {

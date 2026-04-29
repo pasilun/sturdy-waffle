@@ -9,6 +9,8 @@ import com.sturdywaffle.domain.model.ExtractedInvoice;
 import com.sturdywaffle.domain.model.InvoiceLine;
 import com.sturdywaffle.domain.model.Money;
 import com.sturdywaffle.domain.port.Extractor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +23,7 @@ import java.util.Map;
 @Component
 public class AnthropicExtractor implements Extractor {
 
+    private static final Logger log = LoggerFactory.getLogger(AnthropicExtractor.class);
     private static final String TOOL_NAME = "extract_invoice";
 
     private final AnthropicClient client;
@@ -63,7 +66,14 @@ public class AnthropicExtractor implements Extractor {
                 .addUserMessageOfBlockParams(List.of(docBlock, textBlock))
                 .build();
 
+        long start = System.currentTimeMillis();
         Message response = client.messages().create(params);
+        long latencyMs = System.currentTimeMillis() - start;
+
+        Usage usage = response.usage();
+        log.info("anthropic.extract model={} latencyMs={} inputTokens={} outputTokens={} cacheReadTokens={}",
+                model, latencyMs, usage.inputTokens(), usage.outputTokens(),
+                usage.cacheReadInputTokens().orElse(0L));
 
         ToolUseBlock toolUse = response.content().stream()
                 .filter(ContentBlock::isToolUse)
