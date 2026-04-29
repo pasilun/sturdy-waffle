@@ -2,9 +2,12 @@ import { useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { fetchSuggestion, recordDecision, type SuggestionResponse, type PostingResponse, type DecisionResponse, type InvoiceStatus } from './api'
 import { StatusBadge } from './StatusBadge'
+import { formatMoney } from './format'
 
 function ConfidenceBar({ value }: { value: number | null }) {
-  if (value === null) return null
+  // Loose equality — backend may send `null` or omit the field entirely (→ undefined).
+  // === null misses undefined and would render NaN%.
+  if (value == null || !Number.isFinite(value)) return null
   const pct = Math.round(value * 100)
   const color = value >= 0.8 ? 'bg-green-500' : value >= 0.5 ? 'bg-amber-400' : 'bg-red-400'
   return (
@@ -43,10 +46,10 @@ function PostingsTable({ postings }: { postings: PostingResponse[] }) {
               <ConfidenceBar value={p.confidence} />
             </td>
             <td className="py-3 pr-3 text-right font-mono text-gray-700 align-top">
-              {p.debit !== '0.00' ? p.debit : ''}
+              {p.debit !== '0.00' ? formatMoney(p.debit) : ''}
             </td>
             <td className="py-3 text-right font-mono text-gray-700 align-top">
-              {p.credit !== '0.00' ? p.credit : ''}
+              {p.credit !== '0.00' ? formatMoney(p.credit) : ''}
             </td>
           </tr>
         ))}
@@ -107,7 +110,7 @@ function InvoiceHeader({ s }: { s: SuggestionResponse }) {
         {([['Net', s.net], ['VAT', s.vat], ['Gross', s.gross]] as const).map(([label, value]) => (
           <div key={label}>
             <span className="text-gray-400">{label}</span>
-            <div className="font-mono font-medium text-gray-700">{value} {s.currency}</div>
+            <div className="font-mono font-medium text-gray-700">{formatMoney(value)} {s.currency}</div>
           </div>
         ))}
       </div>

@@ -52,3 +52,39 @@ test('confidence bars render in colors mapped from fixture values', async ({ pag
   // Verify the fixture is what we expect.
   expect(fixtures.suggestion('PENDING').postings[0].confidence).toBe(0.95)
 })
+
+test('null-confidence postings render no bar (no NaN%)', async ({ page }) => {
+  await mockApi(page)
+  await page.goto(`/invoices/${SUGGESTION_ID_PENDING}`)
+
+  // Fixture postings 1 and 2 have confidence: null. Make sure the page
+  // never shows "NaN%" — that was the bug from the first MCP browser review.
+  await expect(page.getByText('NaN%')).toHaveCount(0)
+  await expect(page.getByText(/NaN/)).toHaveCount(0)
+})
+
+test('null-confidence also caught when JSON omits the field (undefined)', async ({ page }) => {
+  // Backend may serialize null Doubles as omitted fields depending on Jackson
+  // config; the guard must handle both null and undefined.
+  await mockApi(page, {
+    suggestion: {
+      ...fixtures.suggestion('PENDING'),
+      postings: fixtures.suggestion('PENDING').postings.map(p => {
+        const { confidence, ...rest } = p
+        return rest // strip the field entirely
+      }),
+    },
+  })
+  await page.goto(`/invoices/${SUGGESTION_ID_PENDING}`)
+  await expect(page.getByText(/NaN/)).toHaveCount(0)
+})
+
+test('money amounts render with sv-SE locale formatting', async ({ page }) => {
+  await mockApi(page)
+  await page.goto(`/invoices/${SUGGESTION_ID_PENDING}`)
+
+  // Fixture gross is "850.00" → sv-SE format is "850,00" (comma decimal,
+  // no thousands separator below 10 000). Larger fixture amounts would get
+  // a non-breaking space — covered by the invoices-list test.
+  await expect(page.getByText('850,00 SEK')).toBeVisible()
+})

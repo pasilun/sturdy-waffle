@@ -2,6 +2,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { fetchInvoices, type InvoiceListItem } from './api'
 import { StatusBadge } from './StatusBadge'
+import { formatMoney } from './format'
 
 const tabs = [
   { value: 'all', label: 'All' },
@@ -116,7 +117,7 @@ function Row({ item, onClick }: { item: InvoiceListItem; onClick: () => void }) 
       <td className="py-3 pr-4 text-gray-600">{item.invoiceNumber ?? '—'}</td>
       <td className="py-3 pr-4 text-gray-600">{item.invoiceDate ?? '—'}</td>
       <td className="py-3 pr-4 text-right font-mono text-gray-700">
-        {item.gross ? `${item.gross} ${item.currency}` : '—'}
+        {item.gross ? `${formatMoney(item.gross)} ${item.currency}` : '—'}
       </td>
       <td className="py-3 pr-4">
         <StatusBadge status={item.status} />

@@ -55,3 +55,13 @@ test('every fixture row has a status badge', async ({ page }) => {
     await expect(page.getByRole('cell', { name: inv.supplierName! })).toBeVisible()
   }
 })
+
+test('gross amounts render with sv-SE thousands separator', async ({ page }) => {
+  await mockApi(page)
+  await page.goto('/invoices')
+
+  // Fixture row gross "12500.00" → sv-SE locale renders with a non-breaking
+  // space as thousands separator: "12 500,00" ( ).
+  await expect(page.getByText(/12 500,00\s+SEK/)).toBeVisible()
+  await expect(page.getByText(/99 999,00\s+SEK/)).toBeVisible()
+})
