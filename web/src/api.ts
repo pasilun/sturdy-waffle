@@ -74,6 +74,25 @@ export async function fetchAccounts(): Promise<AccountResponse[]> {
   return res.json()
 }
 
+export type ActivityEvent =
+  | 'suggestion.created'
+  | 'decision.approved'
+  | 'decision.declined'
+
+export type ActivityResponse = {
+  id: string
+  event: ActivityEvent
+  entityId: string
+  payload: string | null
+  createdAt: string
+}
+
+export async function fetchActivity(): Promise<ActivityResponse[]> {
+  const res = await fetch('/activity')
+  if (!res.ok) throw new Error(`Failed to load activity (${res.status})`)
+  return res.json()
+}
+
 export async function fetchSuggestion(id: string): Promise<SuggestionResponse> {
   const res = await fetch(`/invoices/${id}`)
   if (!res.ok) throw new Error(`Not found (${res.status})`)
