@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "e2e": "playwright test --project=mocked",
+    "e2e:live": "playwright test --project=live",
+    "e2e:full": "E2E_FULL=1 playwright test --project=live",
+    "e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.100.6",
@@ -17,6 +21,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/vite": "^4.2.4",
     "@types/node": "^24.12.2",
     "@types/react": "^19.2.14",
