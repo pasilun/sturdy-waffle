@@ -88,3 +88,36 @@ test('money amounts render with sv-SE locale formatting', async ({ page }) => {
   // a non-breaking space — covered by the invoices-list test.
   await expect(page.getByText('850,00 SEK')).toBeVisible()
 })
+
+test('escalate mapping replaces postings with the escalation response', async ({ page }) => {
+  // Pending invoice → click Escalate → mock returns a different account
+  // for the first posting → UI re-renders with the new mapping.
+  // Pins the contract that the response replaces local state, not just
+  // a fire-and-forget request.
+  await mockApi(page)
+  await page.goto(`/invoices/${SUGGESTION_ID_PENDING}`)
+
+  // Sanity: starts on Kontorsmaterial.
+  await expect(page.getByText('6110 — Kontorsmaterial')).toBeVisible()
+
+  const escalateRequest = page.waitForRequest(req =>
+    req.url().includes('/escalate-mapping') && req.method() === 'POST',
+  )
+  await page.getByRole('button', { name: 'Escalate mapping' }).click()
+  await escalateRequest
+
+  // After the request resolves the postings table re-renders.
+  await expect(page.getByText('6540 — IT-tjänster')).toBeVisible()
+  await expect(page.getByText('6110 — Kontorsmaterial')).not.toBeVisible()
+})
+
+test('escalate button is hidden once a decision exists', async ({ page }) => {
+  // The lock invariant: approved/declined suggestions never see the
+  // button. Backend returns 409 if called anyway, but the UI shouldn't
+  // even show it. Spec invariant — pinned regardless of how the button
+  // is rendered (component name, CSS class, etc.).
+  await mockApi(page)
+  await page.goto(`/invoices/${SUGGESTION_ID_APPROVED}`)
+
+  await expect(page.getByRole('button', { name: 'Escalate mapping' })).toHaveCount(0)
+})

@@ -138,6 +138,7 @@ export const fixtures = {
 
 const UUID = /^\/invoices\/([0-9a-f-]{36})$/
 const DECISION = /^\/invoices\/[0-9a-f-]{36}\/decision$/
+const ESCALATE = /^\/invoices\/[0-9a-f-]{36}\/escalate-mapping$/
 const PDF = /^\/invoices\/[0-9a-f-]{36}\/pdf$/
 
 /**
@@ -154,6 +155,7 @@ export async function mockApi(
     activity?: unknown
     suggestion?: unknown
     uploadResponse?: { id: string }
+    escalatedSuggestion?: unknown
   } = {},
 ) {
   await page.route('**/*', route => {
@@ -183,6 +185,21 @@ export async function mockApi(
       return route.fulfill({
         json: { status: 'APPROVED', decidedAt: new Date().toISOString(), note: null },
       })
+    }
+    if (ESCALATE.test(path) && method === 'POST') {
+      // Default: return the same suggestion shape but with the line
+      // posting re-mapped to a different account, so tests can assert
+      // the UI re-rendered with new content.
+      const base = fixtures.suggestion('PENDING')
+      const escalated = overrides.escalatedSuggestion ?? {
+        ...base,
+        postings: base.postings.map((p, i) =>
+          i === 0
+            ? { ...p, accountCode: '6540', accountName: 'IT-tjänster', confidence: 0.97 }
+            : p,
+        ),
+      }
+      return route.fulfill({ json: escalated })
     }
     if (PDF.test(path)) {
       return route.fulfill({
