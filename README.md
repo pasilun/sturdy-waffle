@@ -54,7 +54,7 @@ The app has a persistent left sidebar with four sections — **Invoices** (the h
 cd api && ./gradlew :api:eval
 ```
 
-Runs three PDF fixtures through the live pipeline (no DB) and prints a per-case table: extract pass/fail, map accuracy, average confidence, latency. Use this as a canary before editing prompts or swapping models.
+Runs the PDF fixtures in `api/src/eval/fixtures/` through the live pipeline (no DB) and prints a per-case table: extract pass/fail, map accuracy, average confidence, latency. Three are easy single-line cases (`rent.pdf`, `lunch.pdf`, `sample.pdf`); `devops.pdf` is a hard six-line consultancy invoice that spreads across four similar 65xx codes plus 5400 — useful for A/B'ing mapper models. Use this as a canary before editing prompts or swapping models.
 
 ## Testing
 
