@@ -27,7 +27,7 @@ public class InvoiceListQuery {
 
     public List<InvoiceListItem> list(String statusFilter, int limit) {
         int safeLimit = Math.min(Math.max(limit, 1), MAX_LIMIT);
-        return jdbc.query("""
+        String baseSql = """
                 SELECT s.id AS suggestion_id, i.id AS invoice_id,
                        i.supplier_name, i.invoice_number, i.invoice_date,
                        i.currency, i.gross, i.created_at,
@@ -35,12 +35,13 @@ public class InvoiceListQuery {
                 FROM suggestions s
                 JOIN invoices i ON i.id = s.invoice_id
                 LEFT JOIN decisions d ON d.suggestion_id = s.id
-                WHERE (? IS NULL OR COALESCE(d.status, 'PENDING') = ?)
-                ORDER BY s.created_at DESC
-                LIMIT ?
-                """,
-                (rs, rowNum) -> mapRow(rs),
-                statusFilter, statusFilter, safeLimit);
+                """;
+        if (statusFilter == null) {
+            return jdbc.query(baseSql + "ORDER BY s.created_at DESC LIMIT ?",
+                    (rs, rowNum) -> mapRow(rs), safeLimit);
+        }
+        return jdbc.query(baseSql + "WHERE COALESCE(d.status, 'PENDING') = ? ORDER BY s.created_at DESC LIMIT ?",
+                (rs, rowNum) -> mapRow(rs), statusFilter, safeLimit);
     }
 
     private static InvoiceListItem mapRow(ResultSet rs) throws SQLException {
