@@ -32,8 +32,11 @@ public class Assembler {
                     line.description(), p.reasoning(), p.confidence()));
         }
 
+        // Derive VAT from grossTotal - netTotal so the journal always balances,
+        // even when the invoice's printed vatTotal has per-line rounding drift.
+        Money effectiveVat = extracted.grossTotal().subtract(extracted.netTotal());
         postings.add(new Posting(
-                SYNTHETIC_LINE, VAT_ACCOUNT, extracted.vatTotal(), null,
+                SYNTHETIC_LINE, VAT_ACCOUNT, effectiveVat, null,
                 "Ingående moms", null, null));
 
         postings.add(new Posting(

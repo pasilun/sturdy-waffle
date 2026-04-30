@@ -19,7 +19,7 @@ spring:
       max-request-size: 10MB
 
 llm:
-  provider: openai   # set LLM_PROVIDER=anthropic to switch back when billing recovers
+  provider: anthropic   # set LLM_PROVIDER=openai to switch back if billing goes down
   anthropic:
     extractor:
       model: claude-sonnet-4-6

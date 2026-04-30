@@ -9,6 +9,8 @@ import java.math.BigDecimal;
 public class Validator {
 
     private static final Money ZERO = Money.of(BigDecimal.ZERO);
+    // Real invoices round VAT per line; tolerate up to 0.10 in the gross check.
+    private static final BigDecimal GROSS_TOLERANCE = new BigDecimal("0.10");
 
     public void validate(ExtractedInvoice e) {
         Money lineSum = e.lines().stream()
@@ -21,7 +23,8 @@ public class Validator {
         }
 
         Money expectedGross = e.netTotal().add(e.vatTotal());
-        if (!expectedGross.equals(e.grossTotal())) {
+        BigDecimal diff = expectedGross.value().subtract(e.grossTotal().value()).abs();
+        if (diff.compareTo(GROSS_TOLERANCE) > 0) {
             throw new ValidationException(
                     "netTotal + vatTotal " + expectedGross + " != grossTotal " + e.grossTotal());
         }

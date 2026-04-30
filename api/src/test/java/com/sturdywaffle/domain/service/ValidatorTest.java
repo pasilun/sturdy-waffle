@@ -47,7 +47,7 @@ class ValidatorTest {
     void rejectsNetPlusVatNotEqualGross() {
         ExtractedInvoice bad = invoice(
                 List.of(line("Service", "100.00")),
-                "100.00", "25.00", "125.01");
+                "100.00", "25.00", "125.11"); // 0.11 exceeds the 0.10 rounding tolerance
 
         assertThrows(ValidationException.class, () -> validator.validate(bad));
     }

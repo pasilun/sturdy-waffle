@@ -21,6 +21,10 @@ public record Money(BigDecimal value) {
         return new Money(value.add(other.value));
     }
 
+    public Money subtract(Money other) {
+        return new Money(value.subtract(other.value));
+    }
+
     @Override
     public String toString() {
         return value.toPlainString();
